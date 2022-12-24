@@ -7,7 +7,7 @@ then
     domain=$1
     app_local_port=$2
 else
-    echo "NMCP add-domain usage: $0 domain app_local_port"
+    echo "NMS: add-domain usage: $0 domain app_local_port"
     exit 1
 fi
 
@@ -25,9 +25,9 @@ server {
         access_log off;
     }
 }
-" > /etc/nginx/conf.d/$domain.conf
+" > /etc/nginx/conf.d/$domain-$app_local_port.conf
 
 # Restart Nginx to apply the changes
 nginx -s reload
 
-echo "NMCP: added $domain:$port to the Nginx!"
+echo "NMS: added $domain:$port to the Nginx!"

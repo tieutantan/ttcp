@@ -3,24 +3,31 @@
 # Check if the domain argument is provided
 if [ -z "$1" ]
 then
-    echo "NMCP remove-domain usage: $0 domain"
+    echo "NMS: remove-domain usage: $0 domain"
     exit 1
 fi
 
 # Set the domain variable
 domain=$1
 
-# Check if the domain configuration file exists
-if [ ! -f "/etc/nginx/conf.d/$domain.conf" ]
-then
-    echo "NMCP: $domain configuration file does not exist."
-    exit 1
-fi
+# Change to the directory containing the files
+folder_path="/etc/nginx/conf.d/"
 
-# Remove the domain configuration file
-rm -f "/etc/nginx/conf.d/$domain.conf"
+# Change to the folder
+cd "$folder_path"
+
+# Loop through all the files in the directory
+for file in *
+do
+    # Check if the file name contains "example.com"
+    if [[ $file == *"$domain"* ]]
+    then
+        # Remove the file
+        rm -f $file
+    fi
+done
 
 # Reload the Nginx configuration
 nginx -s reload
 
-echo "NMCP: $domain has been removed."
+echo "NMS: $domain has been removed."

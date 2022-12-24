@@ -3,7 +3,7 @@ version: '3.9'
 services:
 
   nginx:
-    container_name: 'nmcp'
+    container_name: 'nms'
     build: ./nginx
     volumes:
       - ./config:/etc/nginx/conf.d/
