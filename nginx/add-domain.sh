@@ -7,7 +7,7 @@ then
     domain=$1
     app_local_port=$2
 else
-    echo "NMAP add-domain usage: $0 domain app_local_port"
+    echo "NMCP add-domain usage: $0 domain app_local_port"
     exit 1
 fi
 
@@ -30,4 +30,4 @@ server {
 # Restart Nginx to apply the changes
 nginx -s reload
 
-echo "NMAP: added $domain:$port to the Nginx!"
+echo "NMCP: added $domain:$port to the Nginx!"

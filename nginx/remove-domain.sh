@@ -3,7 +3,7 @@
 # Check if the domain argument is provided
 if [ -z "$1" ]
 then
-    echo "NMAP remove-domain usage: $0 domain"
+    echo "NMCP remove-domain usage: $0 domain"
     exit 1
 fi
 
@@ -13,7 +13,7 @@ domain=$1
 # Check if the domain configuration file exists
 if [ ! -f "/etc/nginx/conf.d/$domain.conf" ]
 then
-    echo "NMAP: $domain configuration file does not exist."
+    echo "NMCP: $domain configuration file does not exist."
     exit 1
 fi
 
@@ -23,4 +23,4 @@ rm -f "/etc/nginx/conf.d/$domain.conf"
 # Reload the Nginx configuration
 nginx -s reload
 
-echo "NMAP: $domain has been removed."
+echo "NMCP: $domain has been removed."

@@ -21,4 +21,4 @@ do
     echo "$counter > $trimmed_name"
 done
 
-echo "NMAP: List $counter Domains."
+echo "NMCP: List $counter Domains."
