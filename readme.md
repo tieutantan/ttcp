@@ -1,4 +1,4 @@
-# Node Multiple CP
+# Node Multiple Simple
 
 The Control Panel For NodeJS Multiple Apps And Domains.
 
@@ -7,27 +7,27 @@ This tool is ideal for individuals who want to run multiple native NodeJS apps a
 ## Instruction
 
 ### 1. Add Domain
-- `docker exec nmcp add domain app_local_port`
+- `docker exec nms add domain app_local_port`
 
 Example: tantn.com
 
-- `docker exec nmcp add tantn.com 1111`
+- `docker exec nms add tantn.com 1111`
 
 ### 2. List Domains as domain-port
-- `docker exec nmcp list`
+- `docker exec nms list`
 
 ### 3. Remove Domain
-- `docker exec nmcp remove tantn.com`
+- `docker exec nms remove tantn.com`
 
 ----
 
-## Setup NMCP in a new AWS Ubuntu server
+## Setup NMS in a new AWS Ubuntu server
 
 #### 1. Clone this repository
-`git clone https://github.com/tieutantan/Node-Multiple-CP.git`
+`git clone https://github.com/tieutantan/Node-Multiple-Simple.git`
 
 #### 2. Install Docker, Node v19 on AWS Ubuntu v20
-`cd Node-Multiple-CP && chmod +x ./setup/aws-ubuntu20.sh && ./setup/aws-ubuntu20.sh`
+`cd Node-Multiple-Simple && chmod +x ./setup/aws-ubuntu20.sh && ./setup/aws-ubuntu20.sh`
 
 #### 3. Start
 `docker-compose up -d --build`
@@ -39,7 +39,7 @@ Example: tantn.com
 ## Others
 
 #### Reload nginx
-`docker exec nmcp nginx -s reload`
+`docker exec nms nginx -s reload`
 
 ----
 

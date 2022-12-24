@@ -22,4 +22,4 @@ do
     echo "$counter > ${trimmed_name}"
 done
 
-echo "NMCP: List $counter Domains."
+echo "NMS: List $counter Domains."

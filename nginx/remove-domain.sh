@@ -3,7 +3,7 @@
 # Check if the domain argument is provided
 if [ -z "$1" ]
 then
-    echo "NMCP remove-domain usage: $0 domain"
+    echo "NMS: remove-domain usage: $0 domain"
     exit 1
 fi
 
@@ -30,4 +30,4 @@ done
 # Reload the Nginx configuration
 nginx -s reload
 
-echo "NMCP: $domain has been removed."
+echo "NMS: $domain has been removed."
