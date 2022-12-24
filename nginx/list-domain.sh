@@ -1,4 +1,5 @@
 #!/bin/sh
+
 # Set the folder path
 folder_path="/etc/nginx/conf.d/"
 
@@ -18,7 +19,7 @@ do
     trimmed_name=${file::-5}
 
     # Print the trimmed name of the file
-    echo "$counter > $trimmed_name"
+    echo "$counter > ${trimmed_name}"
 done
 
 echo "NMCP: List $counter Domains."

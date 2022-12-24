@@ -25,7 +25,7 @@ server {
         access_log off;
     }
 }
-" > /etc/nginx/conf.d/$domain.conf
+" > /etc/nginx/conf.d/$domain-$app_local_port.conf
 
 # Restart Nginx to apply the changes
 nginx -s reload
