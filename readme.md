@@ -1,8 +1,10 @@
 # Node Multiple Simple
 
-The Control Panel For NodeJS Multiple Apps And Domains.
+The Simple Control Panel For NodeJS Multiple Apps And Domains.
 
-This tool is ideal for individuals who want to run multiple native NodeJS apps and dockerized nginx instances with domains on a single server in **a straightforward manner**. It provides a convenient and efficient way to create Nginx configuration files and add or remove `.conf` files.
+This tool is ideal for individuals who want to run multiple native NodeJS apps 
+and dockerized nginx instances with domains on a single server in **a straightforward manner**.
+It provides a convenient and efficient way to create Nginx configuration files and add or remove `.conf` files.
 
 ## Instruction
 
