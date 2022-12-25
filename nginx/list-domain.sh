@@ -10,7 +10,7 @@ cd "$folder_path"
 counter=0
 
 # Loop through the files in the folder
-for file in *
+for file in $(find . -name "*.conf" -type f)
 do
     # Increment the counter
     counter=$((counter+1))

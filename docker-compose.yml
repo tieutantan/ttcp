@@ -5,6 +5,7 @@ services:
   nginx:
     container_name: 'nms'
     build: ./nginx
+    restart: always
     volumes:
       - ./config:/etc/nginx/conf.d/
     ports:

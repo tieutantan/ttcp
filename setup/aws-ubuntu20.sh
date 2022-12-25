@@ -10,6 +10,7 @@ sudo usermod -aG docker ${USER}
 sudo curl -L "https://github.com/docker/compose/releases/download/1.28.5/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 sudo chmod +x /usr/local/bin/docker-compose
 sudo chmod 777 /var/run/docker.sock
+sudo systemctl enable docker # enable docker service on boot
 
 curl -fsSL https://deb.nodesource.com/setup_19.x | sudo -E bash -
 sudo apt update -y && sudo apt install nodejs -y
