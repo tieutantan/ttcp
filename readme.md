@@ -1,10 +1,13 @@
 # Node Multiple Simple
 
-The Simple Control Panel For NodeJS Multiple Apps And Domains.
+*The Simple Control Panel For NodeJS Multiple Apps And Domains*
 
-This tool is ideal for individuals who want to run multiple native NodeJS apps 
-and dockerized nginx instances with domains on a single server in **a straightforward manner**.
-It provides a convenient and efficient way to create Nginx configuration files and add or remove `.conf` files.
+This tool is ideal for individuals who want to **a straightforward manner**.
+
+- Run multiple native NodeJS apps and dockerized Nginx.
+- With domains on a single server + SSL from Cloudflare.
+- A convenient and efficient way to create, list, and remove Nginx `.conf` for each domain.
+- Easy to run the commands on server boot.
 
 ## Instruction
 
@@ -25,16 +28,34 @@ Example: tantn.com
 
 ## Setup NMS in a new AWS Ubuntu server
 
-#### 1. Clone this repository
+#### 1. Clone this repository.
 `git clone https://github.com/tieutantan/Node-Multiple-Simple.git`
 
-#### 2. Install Docker, Node v19 on AWS Ubuntu v20
-`cd Node-Multiple-Simple && chmod +x ./setup/aws-ubuntu20.sh && ./setup/aws-ubuntu20.sh`
+#### 2. Move
+`cd Node-Multiple-Simple`
 
-#### 3. Start
+#### 3a. Install Docker, Node v19 on AWS Ubuntu v20.
+`./setup/aws-ubuntu20.sh`
+
+#### 3b. If need run cmd after server reboot (ex: start apps...).
+
+`./setup/start-after-boot.sh`
+
+You can put commands to start any apps to file **Node-Multiple-Simple/auto-start.sh**
+
+Example: auto-start.sh
+
+```
+#!/bin/bash
+
+nodemon /path/to/server.js
+pm2 startOrReload /path/to/ecosystem.config.js
+```
+
+#### 4. Start
 `docker-compose up -d --build`
 
-#### 4. Add, Remove and List your domains, applications.
+#### 5. Add, Remove and List your domains, applications.
 
 ----
 
