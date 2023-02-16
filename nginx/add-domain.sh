@@ -14,6 +14,7 @@ fi
 # Add the domain and port to the configuration file
 echo "
 server {
+    client_max_body_size 20M;
     server_name $domain;
     location / {
         proxy_pass http://host.docker.internal:$app_local_port;
