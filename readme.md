@@ -20,9 +20,9 @@ This tool is ideal for individuals who want **a straightforward manner**.
 `cd Node-Multiple-Simple`
 
 ### 3a. Install requires Docker, NodeJS
-If Install Docker, Node v19 on AWS Ubuntu v20
+If Install Docker, Node v19 on AWS Ubuntu v22
 
-`./setup/aws-ubuntu20.sh`
+`./setup/aws-ubuntu22.sh`
 
 ### 3b. If need run cmd after server reboot (ex: start apps...).
 

@@ -9,6 +9,8 @@ cd "$folder_path"
 # Initialize a counter to 0
 counter=0
 
+echo "==========================="
+
 # Loop through the files in the folder
 for file in $(find . -name "*.conf" -type f)
 do
@@ -23,3 +25,4 @@ do
 done
 
 echo "NMS: List $counter Domains."
+echo "==========================="

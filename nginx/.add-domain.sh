@@ -43,4 +43,6 @@ server {
 # Restart Nginx to apply the changes
 nginx -s reload
 
+echo "==================================="
 echo "NMS: added $domain:$port to Nginx!"
+echo "==================================="
