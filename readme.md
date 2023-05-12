@@ -13,24 +13,22 @@ This tool is ideal for individuals who want **a straightforward manner**.
 
 ## Setup NMS
 
-#### 1. Clone this repository.
+### 1. Clone this repository.
 `git clone https://github.com/tieutantan/Node-Multiple-Simple.git`
 
-#### 2. Move
+### 2. Move
 `cd Node-Multiple-Simple`
 
-#### 3a. Install requires Docker, NodeJS
-If Install Docker, Node v19 on AWS Ubuntu v20
+### 3a. Install requires Docker, NodeJS
+If Install Docker, Node v19 + PM2 on AWS Ubuntu v22
 
-`./setup/aws-ubuntu20.sh`
+`./setup/aws-ubuntu22.sh`
 
-#### 3b. If need run cmd after server reboot (ex: start apps...).
+### 3b. If need run cmd after server reboot (ex: start apps...).
 
-`./setup/run-on-boot.sh`
+#### __1. You can put commands to start any apps.
 
-You can put commands to start any apps to file **Node-Multiple-Simple/auto-run.sh**
-
-Example: auto-run.sh
+Example: `Node-Multiple-Simple/auto-run.sh`
 
 ```
 #!/bin/bash
@@ -41,10 +39,12 @@ npm run production
 pm2 startOrReload /path/other/ecosystem.config.js
 ```
 
-#### 4. Start
+#### __2. Run `./setup/run-on-boot.sh` to apply code run on boot.
+
+### 4. Start
 `docker-compose up -d --build`
 
-#### 5. Add, Remove and List your domains, applications.
+### 5. Add, Remove and List your domains, applications.
 
 ----
 

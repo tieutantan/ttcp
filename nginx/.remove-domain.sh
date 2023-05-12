@@ -30,4 +30,6 @@ done
 # Reload the Nginx configuration
 nginx -s reload
 
+echo "=============================="
 echo "NMS: $domain has been removed."
+echo "=============================="

@@ -11,6 +11,18 @@ else
     exit 1
 fi
 
+# Check domain exist
+if ls /etc/nginx/conf.d/*"$domain"* >/dev/null 2>&1; then
+    echo "NMS: The $domain already exists."
+    exit 1
+fi
+
+# Check port exist
+if ls /etc/nginx/conf.d/*"$app_local_port"* >/dev/null 2>&1; then
+    echo "NMS: The port $app_local_port already exists."
+    exit 1
+fi
+
 # Add the domain and port to the configuration file
 echo "
 server {
@@ -31,4 +43,6 @@ server {
 # Restart Nginx to apply the changes
 nginx -s reload
 
-echo "NMS: added $domain:$port to the Nginx!"
+echo "==================================="
+echo "NMS: added $domain:$port to Nginx!"
+echo "==================================="

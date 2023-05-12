@@ -39,8 +39,10 @@ fi
 echo "$ssh_key_block" >> "$ssh_config"
 sed -i '/^$/d' "$ssh_config"
 
+echo "============================================================"
 echo "NMS: your git clone as: git@$key_name:USERNAME/repo_name.git"
 echo "NMS: your "~/.ssh/nms_ssh_key/"$key_name".pub
 echo "--------"
 cat < ~/.ssh/nms_ssh_key/"$key_name".pub
 echo "--------"
+echo "============================================================"

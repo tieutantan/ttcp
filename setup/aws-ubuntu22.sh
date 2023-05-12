@@ -14,5 +14,6 @@ sudo systemctl enable docker # enable docker service on boot
 
 curl -fsSL https://deb.nodesource.com/setup_19.x | sudo -E bash -
 sudo apt update -y && sudo apt install nodejs -y
+sudo npm install pm2@latest -g && sudo pm2 install pm2-logrotate
 
 sudo apt-get install libcap2-bin && sudo setcap cap_net_bind_service=+ep `readlink -f \`which node\``
