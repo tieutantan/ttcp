@@ -20,17 +20,15 @@ This tool is ideal for individuals who want **a straightforward manner**.
 `cd Node-Multiple-Simple`
 
 ### 3a. Install requires Docker, NodeJS
-If Install Docker, Node v19 on AWS Ubuntu v22
+If Install Docker, Node v19 + PM2 on AWS Ubuntu v22
 
 `./setup/aws-ubuntu22.sh`
 
 ### 3b. If need run cmd after server reboot (ex: start apps...).
 
-#### __1. Create file `auto-run.sh`
+#### __1. You can put commands to start any apps.
 
-You can put commands to start any apps to file **Node-Multiple-Simple/auto-run.sh**
-
-Example: auto-run.sh
+Example: `Node-Multiple-Simple/auto-run.sh`
 
 ```
 #!/bin/bash
