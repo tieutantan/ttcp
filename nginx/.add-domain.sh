@@ -29,7 +29,7 @@ server {
     client_max_body_size 20M;
     server_name $domain;
     location / {
-        proxy_pass http://host.docker.internal:$app_local_port;
+        proxy_pass http://127.0.0.1:$app_local_port;
         proxy_http_version 1.1;
         proxy_set_header Upgrade \$http_upgrade;
         proxy_set_header Connection 'upgrade';
