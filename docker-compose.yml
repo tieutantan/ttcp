@@ -8,6 +8,7 @@ services:
     restart: always
     volumes:
       - ./config:/etc/nginx/conf.d/
+      - ./log:/var/log/nginx/
     ports:
       - "80:80"
     extra_hosts:
