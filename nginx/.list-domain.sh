@@ -24,5 +24,5 @@ do
     echo "$counter > ${trimmed_name}"
 done
 
-echo "NMS: List $counter Domains."
+echo "TTCP: List $counter Domains."
 echo "==========================="

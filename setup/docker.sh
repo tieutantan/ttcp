@@ -3,7 +3,7 @@
 # Install Newest Docker + Docker Compose on Ubuntu22
 
 # Update the package index
-sudo apt-get update
+sudo apt-get update -y && apt-get upgrade -y
 
 # Install packages to allow apt to use a repository over HTTPS
 sudo apt-get install -y \
@@ -33,12 +33,6 @@ sudo chmod +x /usr/local/bin/docker-compose
 
 sudo chmod 777 /var/run/docker.sock
 sudo systemctl enable docker # enable docker service on boot
-
-curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-sudo apt update -y && sudo apt install nodejs -y
-sudo npm install pm2@latest -g && sudo pm2 install pm2-logrotate
-
-sudo apt-get install libcap2-bin && sudo setcap cap_net_bind_service=+ep `readlink -f \`which node\``
 
 # Print Docker and Docker Compose version
 docker --version

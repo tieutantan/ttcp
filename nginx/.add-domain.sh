@@ -7,19 +7,19 @@ then
     domain=$1
     app_local_port=$2
 else
-    echo "NMS: add-domain usage: $0 domain app_local_port"
+    echo "TTCP: add-domain usage: $0 domain app_local_port"
     exit 1
 fi
 
 # Check domain exist
 if ls /etc/nginx/conf.d/*"$domain"* >/dev/null 2>&1; then
-    echo "NMS: The $domain already exists."
+    echo "TTCP: The $domain already exists."
     exit 1
 fi
 
 # Check port exist
 if ls /etc/nginx/conf.d/*"$app_local_port"* >/dev/null 2>&1; then
-    echo "NMS: The port $app_local_port already exists."
+    echo "TTCP: The port $app_local_port already exists."
     exit 1
 fi
 
@@ -29,7 +29,7 @@ server {
     client_max_body_size 20M;
     server_name $domain;
     location / {
-        proxy_pass http://127.0.0.1:$app_local_port;
+        proxy_pass http://host.docker.internal:$app_local_port;
         proxy_http_version 1.1;
         proxy_set_header Upgrade \$http_upgrade;
         proxy_set_header Connection 'upgrade';
@@ -44,5 +44,5 @@ server {
 nginx -s reload
 
 echo "==================================="
-echo "NMS: added $domain:$port to Nginx!"
+echo "TTCP: added $domain:$port to Nginx!"
 echo "==================================="

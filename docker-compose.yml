@@ -3,7 +3,7 @@ version: '3.9'
 services:
 
   nginx:
-    container_name: 'nms'
+    container_name: 'ttcp'
     build: ./nginx
     restart: always
     volumes:
