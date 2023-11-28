@@ -2,7 +2,7 @@
 
 base_dir=$(dirname "$(pwd)")
 
-path="$base_dir/Node-Multiple-Simple/auto-run.sh"
+path="$base_dir/ttcp/auto-run.sh"
 
 if ! crontab -l 2>/dev/null; then
   echo "Creating new crontab for the user"

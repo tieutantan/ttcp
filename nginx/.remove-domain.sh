@@ -3,7 +3,7 @@
 # Check if the domain argument is provided
 if [ -z "$1" ]
 then
-    echo "NMS: remove-domain usage: $0 domain"
+    echo "TTCP: remove-domain usage: $0 domain"
     exit 1
 fi
 
@@ -31,5 +31,5 @@ done
 nginx -s reload
 
 echo "=============================="
-echo "NMS: $domain has been removed."
+echo "TTCP: $domain has been removed."
 echo "=============================="
