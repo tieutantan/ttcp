@@ -13,17 +13,12 @@ This tool is ideal for individuals who want **a straightforward manner**.
 
 ## Setup TTCP
 
-### 1. Clone this repository.
+### 1. Clone this and go to directory ttcp
 ```commandline
-git clone https://github.com/tieutantan/ttcp.git
+git clone https://github.com/tieutantan/ttcp.git && cd ttcp
 ```
 
-### 2. Move
-```commandline
-cd ttcp
-```
-
-### 3. Install Docker
+### 2. Install Docker on Ubuntu 22
 
 Newest Version
 ```shell
@@ -40,12 +35,12 @@ Custom Version (optional)
 ./setup/nodejs.sh 18
 ```
 
-### 4. Start NMS
+### 3. Start TTCP
 ```commandline
 docker-compose up -d --build
 ```
 
-### 5. If need run cmd after server reboot (ex: start apps, clear cache, schedule...) (optional)
+### 4. If need run cmd after server reboot (ex: start apps, clear cache, schedule...) (optional)
 
 You can put commands to start any app to `ttcp/auto-run.sh`
 
@@ -155,7 +150,7 @@ mci5BCRd3GbafkkwQMixJEqQHW+qSD root@nw.azure.cloud
 docker exec ttcp nginx -s reload
 ```
 
-#### Git pulls the newest version of NMS
+#### Git pulls the newest version of TTCP
 ```commandline
 git fetch --all && git reset --hard origin/master && git pull
 ```
