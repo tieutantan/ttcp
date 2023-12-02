@@ -1,22 +1,34 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Server _TTCP_ Is Available!</title>
     <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body>
-<div class="grid grid-cols-1 place-items-center h-screen bg-black">
-    <div class="text-center border-8 border-emerald-300 bg-yellow-200 rounded-lg p-8 w-full sm:w-10/12 md:w-6/12 lg:w-5/12">
+  </head>
+  <body>
+    <div class="grid h-screen grid-cols-1 place-items-center bg-slate-900">
+      <div class="w-full rounded-lg border-4 border-emerald-800 bg-blue-200 p-8 text-center sm:w-10/12 md:w-6/12 lg:w-5/12">
         <h1 class="mb-5 text-3xl font-bold">
-            <a href="https://cp.tantn.com" target="_blank">TTCP</a>
+          <a class="text-orange-600" href="https://cp.tantn.com" target="_blank">TTCP</a>
         </h1>
-        <p class="font-semibold italic">The Free Simple Control Panel For The Server With Multiple Apps And Domains.</p>
-        <div class="mt-5 text-cyan-600 font-bold">
-            <a href="https://github.com/tieutantan/ttcp" target="_blank">Github</a>
+        <p class="font-semibold italic">The Free Simple Control Panel For The Server With Multiple Apps And Domains</p>
+
+        <p class="my-5 text-left">TTCP is a highly efficient tool designed for those seeking a straightforward approach to server management. It's particularly useful for managing multiple applications and domains on a single server. Key features include:</p>
+
+        <ul class="text-left">
+          <li class="my-3"><span class="font-bold">Support for Multiple Apps:</span> Run various applications on different ports, using Dockerized Nginx for enhanced flexibility and control.</li>
+          <li class="my-3"><span class="font-bold">Domain Management:</span> Easily handle multiple domains on a single server. This includes creating, listing, and removing Nginx .conf files for each domain.</li>
+          <li class="my-3"><span class="font-bold">SSL Integration:</span> Offers SSL support through CDN, ensuring secure connections for your domains.</li>
+          <li class="my-3"><span class="font-bold">Convenient Server and SSH Management:</span> Simplifies the process of running and managing server boot commands and handling multiple SSH keys.</li>
+        </ul>
+
+        <p class="my-5 text-left">TTCP stands out for its user-friendly interface and functionality, making server and domain management hassle-free even for those with basic technical knowledge.</p>
+
+        <div class="mt-5 font-bold text-orange-600">
+          <a href="https://github.com/tieutantan/ttcp" target="_blank">Github</a>
         </div>
+      </div>
     </div>
-</div>
-</body>
+  </body>
 </html>

@@ -11,7 +11,7 @@ else
   exit 1
 fi
 
-sudo apt update -y && apt upgrade -y
+sudo apt update -y && sudo apt upgrade -y
 sudo curl -SLO https://deb.nodesource.com/nsolid_setup_deb.sh
 sudo chmod 500 nsolid_setup_deb.sh
 yes | sudo ./nsolid_setup_deb.sh "$version"

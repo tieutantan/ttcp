@@ -22,7 +22,7 @@ sudo add-apt-repository \
    stable"
 
 # Update the package index again
-sudo apt-get update
+sudo apt-get update -y
 
 # Install the latest version of Docker Engine and containerd
 sudo apt-get install -y docker-ce docker-ce-cli containerd.io
