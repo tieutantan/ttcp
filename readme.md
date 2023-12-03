@@ -40,7 +40,7 @@ Custom Version (optional)
 docker-compose up -d --build
 ```
 
-### 5. If need run cmd after server reboot (ex: start apps, clear cache, schedule...) (optional)
+### 4. If need run cmd after server reboot (ex: start apps, clear cache, schedule...) (optional)
 
 You can put commands to start any app to `ttcp/auto-run.sh`
 
