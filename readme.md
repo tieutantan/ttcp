@@ -150,7 +150,7 @@ mci5BCRd3GbafkkwQMixJEqQHW+qSD root@nw.azure.cloud
 docker exec ttcp nginx -s reload
 ```
 
-#### Git pulls the newest version of NMS
+#### Git pulls the newest version of TTCP
 ```commandline
 git fetch --all && git reset --hard origin/master && git pull
 ```
