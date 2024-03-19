@@ -15,9 +15,9 @@ function getRepositoryPath {
 
 function getDomain {
   local url="$1"
-  local regex="https?://([^/]+)"
+  local regex="([^@:/]+@)?([^:/]+)"
   if [[ $url =~ $regex ]]; then
-    echo "${BASH_REMATCH[1]}"
+    echo "${BASH_REMATCH[2]}"
   fi
 }
 
