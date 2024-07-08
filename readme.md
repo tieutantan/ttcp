@@ -159,4 +159,4 @@ git fetch --all && git reset --hard origin/master && git pull
 
 If you run into a bug or want to work with me to improve it, 
 please consider submitting a pull request. 
-Your help will be much appreciated by the entire community. And thank you!
+Your help will be much appreciated by the entire community. Thank you!
