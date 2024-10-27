@@ -26,7 +26,7 @@ fi
 # Add the domain and port to the configuration file
 echo "
 server {
-    client_max_body_size 20M;
+    client_max_body_size 200M;
     server_name $domain;
     location / {
         proxy_pass http://host.docker.internal:$app_local_port;
@@ -44,5 +44,6 @@ server {
 nginx -s reload
 
 echo "==================================="
+# shellcheck disable=SC2154
 echo "TTCP: added $domain:$port to Nginx!"
 echo "==================================="
