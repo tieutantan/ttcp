@@ -56,7 +56,7 @@ function addSSHKeyConfig {
   User git
   PreferredAuthentications publickey
   IdentityFile ~/.ssh/ttcp_ssh_key/$keyName
-# CLONE CMD # $cloneCommand
+# TTCP_CLONE_CMD # $cloneCommand
 # end $keyName
   "
   if grep -q "# start $keyName" "$sshConfig"; then
