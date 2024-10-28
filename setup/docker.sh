@@ -3,7 +3,7 @@
 # Install Newest Docker + Docker Compose on Ubuntu22
 
 # Update the package index
-sudo apt-get update -y && apt-get upgrade -y
+sudo apt-get update -y
 
 # Install packages to allow apt to use a repository over HTTPS
 sudo apt-get install -y \
@@ -37,3 +37,6 @@ sudo systemctl enable docker # enable docker service on boot
 # Print Docker and Docker Compose version
 docker --version
 docker-compose --version
+
+# Start Container TTCP
+docker-compose up -d --build

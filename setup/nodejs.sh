@@ -11,14 +11,31 @@ else
   exit 1
 fi
 
-sudo apt update -y && sudo apt upgrade -y
+# Update the package index
+sudo apt update -y
+
+# Install necessary packages for Node.js
+sudo apt install -y curl libcap2-bin
+
+# Download and run the NodeSource setup script
 sudo curl -SLO https://deb.nodesource.com/nsolid_setup_deb.sh
 sudo chmod 500 nsolid_setup_deb.sh
 yes | sudo ./nsolid_setup_deb.sh "$version"
-sudo apt update -y && sudo apt install nodejs -y
-sudo npm install pm2@latest -g && sudo pm2 install pm2-logrotate
-sudo apt-get install libcap2-bin && sudo setcap cap_net_bind_service=+ep `readlink -f \`which node\``
 
-rm -f nsolid_setup_deb.sh  # Remove the script after installation
+# Install Node.js and npm
+sudo apt update -y
+sudo apt install -y nodejs
+
+# Install pm2 and pm2-logrotate
+sudo npm install pm2@latest -g
+sudo pm2 install pm2-logrotate
+
+# Set capabilities for Node.js to bind to low ports
+sudo setcap cap_net_bind_service=+ep `readlink -f \`which node\``
+
+# Clean up
+rm -f nsolid_setup_deb.sh
+
+# Print versions
 node -v
 npm -v

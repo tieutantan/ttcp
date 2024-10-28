@@ -9,7 +9,7 @@ This tool is ideal for individuals who want **a straightforward manner**.
 - A convenient way to create, list, and remove Nginx `.conf` for each domain.
 - Easy to run and manage the commands on server boot and multiple SSH keys.
 
-## | [Setup](#setup-ttcp) | [Instruction](#instruction) | [Menu](#main-menu) |
+## | [Setup](#setup-ttcp) | [Menu](#main-menu) |
 
 ## Setup TTCP
 
@@ -35,27 +35,48 @@ Custom Version (optional)
 ./setup/nodejs.sh 18
 ```
 
-### 3. Start TTCP
+### 3. Run script whenever server reboot (optional)
+You can put (ex: start services, clear cache, schedule...) to `startup.sh` example:
 ```shell
-docker-compose up -d --build
+#!/bin/bash
+nodemon /path/to/server.js
+cd /home/www/domain.com/app && npm run production
+pm2 startOrReload /path/other/ecosystem.config.js
 ```
-
-### 4. If need run cmd after server reboot (optional)
-
-You can put (ex: start services, clear cache, schedule...) to `startup.sh`
-
 ----
 
-## Instruction
+## Main Menu
 
-### 1. Add Domain
-```shell
-docker exec ttcp add [domain] [app_local_port]
+```commandline
+./menu.sh
 ```
+
+Select the desired option by entering the corresponding number and pressing Enter.
+
 ```shell
-docker exec ttcp add tantn.com 1111
+ubuntu@aws:~/ttcp$ ./menu.sh
+---------------
+-[ TTCP MENU ]-
+---------------
+[1] Add Domain
+[2] List Domain
+[3] Remove Domain
+[4] Add SSH Key
+[5] List SSH Keys
+[6] List Clone Commands
+[7] Reload Nginx
+[8] Enable Auto-Run on Startup
+[9] Disable Auto-Run on Startup
+[98] Start TTCP
+[99] Update TTCP
+[0] Exit / Ctrl+C
+Enter your choice: 99 (ex: Update TTCP)
 ```
-File Created: `/ttcp/config/tantn.com-1111.conf`
+
+### [1] Add Domain
+- Enter a domain with the app's local port.
+- The `.conf` files will be created in `/ttcp/config/` directory.
+- File Created: `/ttcp/config/tantn.com-1111.conf`
 ```shell
 server {
     client_max_body_size 200M;
@@ -72,53 +93,17 @@ server {
 }
 ```
 
-### 2. List Domains as domain-port
+### [2] List Domains | with the app's local port.
 ```shell
-docker exec ttcp list
-```
-
-```shell
-root@tt:~/ttcp# docker exec ttcp list
-===========================
-1 > ./meow.city-1002
-2 > ./bunny.org-1101
-3 > ./tantn.com-1111
+---------------------------
+1 > ./github.com-39
+2 > ./example.com-79
+3 > ./tantn.com-68
 TTCP: List 3 Domains.
-===========================
+---------------------------
 ```
 
-### 3. Remove Domain
-```shell
-docker exec ttcp remove tantn.com
-```
-
-----
-
-## Main Menu
-
-```commandline
-./menu.sh
-```
-
-Select the desired option by entering the corresponding number and pressing Enter.
-
-```shell
-ubuntu@aws:~/ttcp$ ./menu.sh
----------------
--[ TTCP MENU ]-
----------------
-1. Add SSH Key
-2. List SSH Keys
-3. List Clone Commands
-4. Reload Nginx
-5. Enable Auto-Run on Startup
-6. Disable Auto-Run on Startup
-99. Update TTCP
-0. Exit / Ctrl+C
-Enter your choice: 99
-```
-
-### 1. Add SSH Key | Create Multiple SSH Keys For Each Repository
+### [4] Add SSH Key | Create Multiple SSH Keys For Each Repository
 
 ```shell
 root@tt:~/ttcp#
@@ -132,7 +117,7 @@ NFSPZduTGZdbkZXmW2FCEKJWpHx7h2NarSR61OFvcfpJNuFztYrsAXOFKbhTzZSHwilDhq
 mci5BCRd3GbafkkwQMixJEqQHW+qSD root@nw.azure.cloud
 ```
 
-### 2. List SSH Keys
+### [5] List SSH Keys
 - All keys inside `~/.ssh/ttcp_ssh_key/`
 ```shell
 /home/ubuntu/.ssh/ttcp_ssh_key/Laraker.pub
@@ -140,7 +125,7 @@ mci5BCRd3GbafkkwQMixJEqQHW+qSD root@nw.azure.cloud
 /home/ubuntu/.ssh/ttcp_ssh_key/wxt.pub
 ```
 
-### 3. List Clone Commands
+### [6] List Clone Commands
 
 ```shell
 git clone git@ttcp:tieutantan/ttcp.git
