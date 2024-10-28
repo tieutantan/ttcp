@@ -17,4 +17,8 @@ cp "$EXAMPLE_SCRIPT" "$CHECK_DEPLOY_SCRIPT"
 # Make the script executable
 chmod +x "$CHECK_DEPLOY_SCRIPT"
 
+# update CHECK_DEPLOY_SCRIPT to ttcp_check_deploys.sh REPO_DIRS
+sed -i "s|REPO_DIRS=(|REPO_DIRS=(\n    \"$APP_PATH\"|g" ttcp_check_deploys.sh
+
+
 echo "Created $CHECK_DEPLOY_SCRIPT"

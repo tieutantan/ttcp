@@ -9,7 +9,6 @@ REPO_DIRS=(
 
 for REPO_DIR in "${REPO_DIRS[@]}"; do
     echo "Đang kiểm tra cập nhật cho $REPO_DIR..."
-    
     # Chạy file check_update.sh trong từng thư mục
     "$REPO_DIR/check_deploy.sh"
 done
