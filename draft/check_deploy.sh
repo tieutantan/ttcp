@@ -14,7 +14,13 @@ git reset --hard origin/"$CURRENT_BRANCH"
 
 # Check if the last commit is different from the current commit
 if [ "$LAST_COMMIT" != "$(git rev-parse HEAD)" ]; then
-  git pull # Pull the latest changes from the remote repository
-  npm install
-  npm run build
+
+  # Pull the latest changes from the remote repository
+  git pull
+
+  # Install dependencies and build the project
+  # npm install
+  # npm run build
+  # ...
+
 fi
