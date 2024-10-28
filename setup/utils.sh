@@ -130,13 +130,6 @@ function disableAutoRun() {
     MenuTTCP
 }
 
-function updateTTCP() {
-    # Pull the latest changes from the remote repository
-    git fetch --all && git reset --hard origin/master && git pull
-    docker-compose up -d --build
-    MenuTTCP
-}
-
 # Add domain by command `docker exec ttcp add [domain] [app_local_port]` format
 function addDomain() {
     # shellcheck disable=SC2162
@@ -145,6 +138,13 @@ function addDomain() {
     read -p "Add Domain: Enter the app local port: " app_local_port
     docker exec ttcp add "$domain" "$app_local_port"
     MenuTTCP
+}
+
+function updateTTCP() {
+    # Pull the latest changes from the remote repository
+    git fetch --all && git reset --hard origin/master && git pull
+    docker-compose up -d --build
+    # Finished update no need auto-open MenuTTCP because it cached, so we need to re-run it
 }
 
 function listDomains() {

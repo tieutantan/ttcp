@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# `./node.sh` is default v20, and `./node.sh 50` is custom version
+# `./node.sh` is default v22, and `./node.sh 50` is custom version
 
 if [ $# -eq 0 ]; then
-  version="20"
+  version="22"
 elif [ $# -eq 1 ]; then
   version="$1"
 else
@@ -31,6 +31,8 @@ sudo npm install pm2@latest -g
 sudo pm2 install pm2-logrotate
 
 # Set capabilities for Node.js to bind to low ports
+# shellcheck disable=SC2046
+# shellcheck disable=SC2006
 sudo setcap cap_net_bind_service=+ep `readlink -f \`which node\``
 
 # Clean up
