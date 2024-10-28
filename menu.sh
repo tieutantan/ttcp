@@ -13,20 +13,24 @@ line="---------------"
 # display menu and get user choice for the SSH tools menu options 1-4
 function MenuTTCP() {
     echo "$line"
-    echo "-[ TTCP MENU ]-"
+    echo "|| TTCP MENU ||"
     echo "$line"
     checkDockerAndDockerCompose
     echo "[1] Add Domain"
     echo "[2] List Domain"
     echo "[3] Remove Domain"
+    echo "$line"
     echo "[4] Add SSH Key"
     echo "[5] List SSH Keys"
+    echo "$line"
     echo "[6] List Clone Commands"
     echo "[7] Reload Nginx"
     echo "[8] Enable Auto-Run on Startup"
     echo "[9] Disable Auto-Run on Startup"
+    echo "$line"
     echo "[98] Start TTCP"
     echo "[99] Update TTCP"
+    echo "$line"
     echo "[0] Exit / Ctrl+C"
     # shellcheck disable=SC2162
     read -p "Enter your choice: " choice

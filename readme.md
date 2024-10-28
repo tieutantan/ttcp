@@ -32,7 +32,7 @@ Default v20 (optional)
 
 Custom Version (optional)
 ```shell
-./setup/nodejs.sh 18
+./setup/nodejs.sh 22
 ```
 
 ### 3. Run script whenever server reboot (optional)
@@ -56,19 +56,23 @@ Select the desired option by entering the corresponding number and pressing Ente
 ```shell
 ubuntu@aws:~/ttcp$ ./menu.sh
 ---------------
--[ TTCP MENU ]-
+|| TTCP MENU ||
 ---------------
 [1] Add Domain
 [2] List Domain
 [3] Remove Domain
+---------------
 [4] Add SSH Key
 [5] List SSH Keys
+---------------
 [6] List Clone Commands
 [7] Reload Nginx
 [8] Enable Auto-Run on Startup
 [9] Disable Auto-Run on Startup
+---------------
 [98] Start TTCP
 [99] Update TTCP
+---------------
 [0] Exit / Ctrl+C
 Enter your choice: 99 (ex: Update TTCP)
 ```
