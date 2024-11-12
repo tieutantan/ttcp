@@ -133,6 +133,7 @@ function disableAutoRun() {
 function updateTTCP() {
     # Pull the latest changes from the remote repository
     git fetch --all && git reset --hard origin/master && git pull
+    docker-compose up -d --build
     MenuTTCP
 }
 
