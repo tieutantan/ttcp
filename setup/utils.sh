@@ -168,18 +168,28 @@ function ttcpStartDockerContainer() {
 }
 
 function checkDockerAndDockerCompose() {
-    if ! command -v docker &> /dev/null || ! command -v docker-compose &> /dev/null; then
-        echo "Docker or Docker Compose not found. Command to install:"
-        echo "$line"
-        echo "./setup/docker.sh"
-        echo "$line"
-    elif ! sudo systemctl is-active --quiet docker; then
-        echo "Docker service is not running. Start Docker using the command:"
-        echo "$line"
-        echo "sudo systemctl start docker"
-        echo "$line"
-    elif ! docker ps --format '{{.Names}}' | grep -q '^ttcp$'; then
-        echo "TTCP container is not running. Start the TTCP using Menu -> [98]"
-        echo "$line"
-    fi
+     # Check if Docker and Docker Compose are installed
+      if ! command -v docker &> /dev/null || ! command -v docker-compose &> /dev/null; then
+          echo "Docker or Docker Compose not found. Command to install:"
+          echo "$line"
+          echo "./setup/docker.sh"
+          echo "$line"
+          return 1
+      fi
+
+      # Check if Docker is running
+      if ! docker info &> /dev/null; then
+          echo "Docker service is not running. Start Docker using the command:"
+          echo "$line"
+          echo "sudo systemctl start docker"
+          echo "$line"
+          return 1
+      fi
+
+      # Check if the TTCP container is running
+      if ! docker ps --format '{{.Names}}' | grep -q '^ttcp$'; then
+          echo "TTCP container is not running. Start the TTCP using Menu -> [98]"
+          echo "$line"
+          return 1
+      fi
 }
