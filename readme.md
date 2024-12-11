@@ -30,7 +30,7 @@ Default v22 (optional)
 ./setup/nodejs.sh
 ```
 
-Custom Version (optional)
+Custom Version (optional) 23, 20, 18, 16, 14, 12
 ```shell
 ./setup/nodejs.sh 24
 ```

@@ -1,42 +1,31 @@
 #!/bin/bash
 
-# `./node.sh` is default v22, and `./node.sh 50` is custom version
+#Version listing:
+#Node.js 23.x: https://deb.nodesource.com/setup_23.x
+#Node.js 22.x: https://deb.nodesource.com/setup_22.x
+#Node.js 20.x: https://deb.nodesource.com/setup_20.x
+#Node.js 18.x: https://deb.nodesource.com/setup_18.x
+#Node.js 16.x: https://deb.nodesource.com/setup_16.x
+#Node.js 14.x: https://deb.nodesource.com/setup_14.x
+#Node.js 12.x: https://deb.nodesource.com/setup_12.x
 
-if [ $# -eq 0 ]; then
-  version="22"
-elif [ $# -eq 1 ]; then
-  version="$1"
-else
-  echo "Usage: $0 [node_version]"
-  exit 1
+# Download the setup script
+curl -fsSL https://deb.nodesource.com/setup_22.x -o nodesource_setup.sh
+
+# Run the script
+sudo -E bash nodesource_setup.sh
+
+sudo apt-get install nodejs -y
+
+# check if not exist pm2 then install it
+if ! command -v pm2 &> /dev/null
+then
+  sudo npm install pm2@latest -g
+  sudo pm2 install pm2-logrotate
 fi
 
-# Update the package index
-sudo apt update -y
-
-# Install necessary packages for Node.js
-sudo apt install -y curl libcap2-bin
-
-# Download and run the NodeSource setup script
-sudo curl -SLO https://deb.nodesource.com/nsolid_setup_deb.sh
-sudo chmod 500 nsolid_setup_deb.sh
-yes | sudo ./nsolid_setup_deb.sh "$version"
-
-# Install Node.js and npm
-sudo apt update -y
-sudo apt install -y nodejs
-
-# Install pm2 and pm2-logrotate
-sudo npm install pm2@latest -g
-sudo pm2 install pm2-logrotate
-
-# Set capabilities for Node.js to bind to low ports
-# shellcheck disable=SC2046
-# shellcheck disable=SC2006
-sudo setcap cap_net_bind_service=+ep `readlink -f \`which node\``
-
-# Clean up
-rm -f nsolid_setup_deb.sh
+# Remove the setup script
+rm -f nodesource_setup.sh
 
 # Print versions
 node -v
