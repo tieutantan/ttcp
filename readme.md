@@ -137,6 +137,11 @@ git clone git@vue:vuejs/vue.git
 git clone git@kotlin:JetBrains/kotlin.git
 ```
 
+### Misc
+```shell
+git push -f origin master
+```
+
 ----
 
 If you run into a bug or want to work with me to improve it, 
