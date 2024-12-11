@@ -32,7 +32,7 @@ Default v22 (optional)
 
 Custom Version (optional) 23, 20, 18, 16, 14, 12
 ```shell
-./setup/nodejs.sh 24
+./setup/nodejs.sh 16
 ```
 
 ### 3. Run script whenever server reboot (optional)
