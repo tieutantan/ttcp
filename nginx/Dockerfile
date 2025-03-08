@@ -4,6 +4,7 @@ COPY nginx.conf /etc/nginx/nginx.conf
 COPY index.html /usr/share/nginx/html/index.html
 
 RUN apk update && apk add curl net-tools
+RUN apk add --no-cache bash curl nano
 
 RUN IP=$(curl -s ifconfig.me) && \
     sed -i "s/_TTCP_/$IP/g" /usr/share/nginx/html/index.html

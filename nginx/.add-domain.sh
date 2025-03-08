@@ -18,6 +18,7 @@ if ls /etc/nginx/conf.d/*"$domain"* >/dev/null 2>&1; then
 fi
 
 # Check port exist
+# todo: improve must check exactly port, now check by wildcard
 if ls /etc/nginx/conf.d/*"$app_local_port"* >/dev/null 2>&1; then
     echo "TTCP: The port $app_local_port already exists."
     exit 1

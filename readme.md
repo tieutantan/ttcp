@@ -138,8 +138,14 @@ git clone git@kotlin:JetBrains/kotlin.git
 ```
 
 ### Misc
+
 ```shell
 git push -f origin master
+```
+
+Check using ports
+```shell
+sudo lsof -i -P -n
 ```
 
 ----
