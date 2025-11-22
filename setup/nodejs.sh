@@ -1,130 +1,113 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-###########################################
-# ẢNH HƯỞNG QUAN TRỌNG
-# => KHÔNG được chạy script này bằng sudo / root
-###########################################
-if [ "$EUID" -eq 0 ]; then
-  echo "[ERROR] Please do NOT run this script as root or with sudo."
-  echo "        Hãy chạy: ./nodejs.sh  (không dùng sudo)"
-  exit 1
-fi
+#Version listing:
+#Node.js 23.x: https://deb.nodesource.com/setup_23.x
+#Node.js 22.x: https://deb.nodesource.com/setup_22.x
+#Node.js 20.x: https://deb.nodesource.com/setup_20.x
+#Node.js 18.x: https://deb.nodesource.com/setup_18.x
+#Node.js 16.x: https://deb.nodesource.com/setup_16.x
+#Node.js 14.x: https://deb.nodesource.com/setup_14.x
+#Node.js 12.x: https://deb.nodesource.com/setup_12.x
+
+# Usage: ./nodejs.sh <version>
+# Example: ./nodejs.sh 20  -> install Node.js 20.x
+# Default: 20 (LTS) if no argument
+
+NODE_VERSION="${1:-20}"
+SETUP_URL="https://deb.nodesource.com/setup_${NODE_VERSION}.x"
+SWAPFILE="/swapfile"
 
 echo "======================================="
-echo " Installing Node.js using NVM (for user: $USER)"
-echo " Temporary SWAP enabled during installation"
+echo " Installing Node.js ${NODE_VERSION}.x via NodeSource"
+echo " Enabling permanent 2GB swap if missing"
 echo "======================================="
 
-SWAPFILE="/swapfile.temp.nodejs"
-
 ###########################################
-# 0. Tạo SWAP tạm 2GB
+# 0. Tạo SWAP forever if it not exist
 ###########################################
 
 if ! grep -q "$SWAPFILE" /proc/swaps 2>/dev/null; then
-  echo "[INFO] Creating temporary 2GB swap at $SWAPFILE ..."
-  if ! sudo fallocate -l 2G "$SWAPFILE"; then
-    echo "[WARN] fallocate failed, using dd instead..."
-    sudo dd if=/dev/zero of="$SWAPFILE" bs=1M count=2048
+  echo "[INFO] Creating 2GB swap at $SWAPFILE ..."
+  if [ ! -f "$SWAPFILE" ]; then
+    if ! sudo fallocate -l 2G "$SWAPFILE"; then
+      echo "[WARN] fallocate failed, fallback to dd..."
+      sudo dd if=/dev/zero of="$SWAPFILE" bs=1M count=2048
+    fi
   fi
-  sudo chmod 600 "$SWAPFILE"
-  sudo mkswap "$SWAPFILE"
-  sudo swapon "$SWAPFILE"
+
+  sudo chmod 600 "$SWAPFILE" || true
+  sudo mkswap "$SWAPFILE" || true
+  sudo swapon "$SWAPFILE" || true
+
+  if ! grep -q "$SWAPFILE" /etc/fstab; then
+    echo "$SWAPFILE none swap sw 0 0" | sudo tee -a /etc/fstab >/dev/null
+  fi
+
+  echo "[INFO] Swap enabled."
 else
-  echo "[INFO] Temporary swap already exists (unexpected)."
+  echo "[INFO] Swap already active at $SWAPFILE, skipping creation."
 fi
 
-echo "[INFO] Memory status:"
+echo "[INFO] Current memory:"
 free -h || true
 
 ###########################################
-# 1. Cleanup dpkg if NodeSource failed previously
+# 1. Cleanup dpkg nếu NodeSource fail trước đó
 ###########################################
-echo "[INFO] Cleaning previous broken nodejs installation (if any)..."
+
+echo "[INFO] Cleaning possible broken nodejs installation..."
 sudo dpkg --remove --force-remove-reinstreq nodejs >/dev/null 2>&1 || true
 sudo rm -f /var/cache/apt/archives/nodejs_*_amd64.deb || true
 sudo apt -f install -y >/dev/null 2>&1 || true
-sudo apt update -y
 
 ###########################################
-# 2. Cài NVM cho user hiện tại
+# 2. Đảm bảo có curl + CA
 ###########################################
 
-if [ ! -d "$HOME/.nvm" ]; then
-  echo "[INFO] Installing NVM into $HOME/.nvm ..."
-  curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.0/install.sh | bash
-else
-  echo "[INFO] NVM already exists at $HOME/.nvm, skipping install."
-fi
-
-# Load NVM vào shell hiện tại
-export NVM_DIR="$HOME/.nvm"
-# shellcheck source=/dev/null
-if [ -s "$NVM_DIR/nvm.sh" ]; then
-  . "$NVM_DIR/nvm.sh"
-else
-  echo "[ERROR] nvm.sh not found in $NVM_DIR, something went wrong."
-  exit 1
+if ! command -v curl >/dev/null 2>&1; then
+  echo "[INFO] Installing curl + ca-certificates..."
+  sudo apt-get update
+  sudo apt-get install -y curl ca-certificates
 fi
 
 ###########################################
-# 3. Install Node.js via NVM (default: 20)
+# 3. Thêm NodeSource repo & cài Node.js
 ###########################################
 
-NODE_VERSION="${1:-20}"
-echo "[INFO] Installing Node.js v${NODE_VERSION} with NVM..."
-nvm install "$NODE_VERSION"
-nvm alias default "$NODE_VERSION"
-nvm use "$NODE_VERSION"
+echo "[INFO] Using NodeSource setup script: ${SETUP_URL}"
+curl -fsSL "${SETUP_URL}" | sudo -E bash -
 
-echo "[INFO] Node installed for user $USER:"
+echo "[INFO] Installing nodejs package..."
+sudo apt-get update
+sudo apt-get install -y nodejs
+
+echo "[INFO] Installed Node and npm versions:"
 node -v
 npm -v
 
 ###########################################
-# 4. Install PM2 + logrotate (không dùng sudo)
+# 4. Install PM2 + pm2-logrotate (global)
 ###########################################
 
-echo "[INFO] Installing PM2 + pm2-logrotate globally (via NVM's npm)..."
-npm install -g pm2 pm2-logrotate
-pm2 -v
-
-###########################################
-# 5. Xoá swap tạm (sau khi cài xong)
-###########################################
-
-echo "[INFO] Removing temporary swap at $SWAPFILE ..."
-sudo swapoff "$SWAPFILE" || true
-sudo rm -f "$SWAPFILE" || true
-
-echo "[INFO] Final memory state:"
-free -h || true
-
-###########################################
-# 6. Đảm bảo NVM load auto mỗi lần SSH
-###########################################
-
-if ! grep -q 'nvm.sh' "$HOME/.bashrc"; then
-cat <<'EOF' >> "$HOME/.bashrc"
-
-# Load NVM automatically
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-EOF
-  echo "[INFO] NVM auto-load snippet appended to ~/.bashrc"
+if ! command -v pm2 >/dev/null 2>&1; then
+  echo "[INFO] Installing pm2 and pm2-logrotate globally..."
+  sudo npm install -g pm2@latest
+  sudo pm2 install pm2-logrotate || true
 else
-  echo "[INFO] NVM auto-load already present in ~/.bashrc, skipping."
+  echo "[INFO] pm2 already installed, skipping."
 fi
 
+echo "[INFO] PM2 version:"
+pm2 -v || echo "pm2 not found?!"
+
 echo "======================================="
-echo " Installation Completed for user: $USER"
+echo " Installation Completed!"
 echo " Node: $(node -v)"
 echo " NPM:  $(npm -v)"
-echo " PM2:  $(pm2 -v)"
-echo " Temporary SWAP has been removed."
+echo " PM2:  $(pm2 -v 2>/dev/null || echo 'not installed')"
+echo " Swap: $(grep '$SWAPFILE' /proc/swaps || echo 'active but not listed')"
 echo "======================================="
 echo "Gợi ý:"
-echo "  - Sau khi SSH lại, node/npm/pm2 vẫn dùng được do NVM được load từ ~/.bashrc"
-echo "  - Ví dụ chạy app: pm2 start index.js --name my-app"
+echo "  pm2 start index.js --name my-app"
 echo "======================================="
