@@ -1,67 +1,100 @@
 #!/usr/bin/env bash
-
 set -euo pipefail
 
-# Version listing:
-# Node.js 23.x: https://deb.nodesource.com/setup_23.x
-# Node.js 22.x: https://deb.nodesource.com/setup_22.x
-# Node.js 20.x: https://deb.nodesource.com/setup_20.x
-# Node.js 18.x: https://deb.nodesource.com/setup_18.x
-# Node.js 16.x: https://deb.nodesource.com/setup_16.x
-# Node.js 14.x: https://deb.nodesource.com/setup_14.x
-# Node.js 12.x: https://deb.nodesource.com/setup_12.x
-#
-# Usage: ./nodejs.sh <version>
-# Example: ./nodejs.sh 20  # sẽ cài Node.js 20.x
-#
-# Mặc định: 20 (LTS) nếu không truyền tham số
+echo "======================================="
+echo " Installing Node.js using NVM (stable)"
+echo " Auto-create SWAP to avoid dpkg kill"
+echo "======================================="
+
+###########################################
+# 0. Tạo SWAP nếu chưa có (2GB)
+###########################################
+
+SWAPFILE="/swapfile"
+
+if ! grep -q "$SWAPFILE" /proc/swaps; then
+  echo "[INFO] Creating 2GB swap..."
+  sudo fallocate -l 2G "$SWAPFILE" || sudo dd if=/dev/zero of="$SWAPFILE" bs=1M count=2048
+  sudo chmod 600 "$SWAPFILE"
+  sudo mkswap "$SWAPFILE"
+  sudo swapon "$SWAPFILE"
+  echo "$SWAPFILE none swap sw 0 0" | sudo tee -a /etc/fstab > /dev/null
+else
+  echo "[INFO] Swap already exists. Skipping."
+fi
+
+echo "[INFO] Current memory:"
+free -h
+
+###########################################
+# 1. Dọn lỗi nodejs bị kẹt trong dpkg (nếu có)
+###########################################
+echo "[INFO] Cleaning broken Node.js installation (if exists)..."
+
+sudo dpkg --remove --force-remove-reinstreq nodejs || true
+sudo rm -f /var/cache/apt/archives/nodejs_*_amd64.deb || true
+sudo apt -f install -y || true
+sudo apt update -y
+
+###########################################
+# 2. Cài NVM
+###########################################
+
+if [ ! -d "$HOME/.nvm" ]; then
+  echo "[INFO] Installing NVM..."
+  curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.0/install.sh | bash
+else
+  echo "[INFO] NVM already installed. Skipping."
+fi
+
+# Load NVM vào shell hiện tại
+export NVM_DIR="$HOME/.nvm"
+# shellcheck source=/dev/null
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
+###########################################
+# 3. Cài Node.js (default: 20 LTS)
+###########################################
 
 NODE_VERSION="${1:-20}"
-SETUP_URL="https://deb.nodesource.com/setup_${NODE_VERSION}.x"
+echo "[INFO] Installing Node.js v${NODE_VERSION} using NVM..."
 
-echo "======================================="
-echo " Installing Node.js ${NODE_VERSION}.x"
-echo " From: ${SETUP_URL}"
-echo "======================================="
+nvm install "$NODE_VERSION"
+nvm alias default "$NODE_VERSION"
+nvm use "$NODE_VERSION"
 
-# Đảm bảo có curl & CA
-if ! command -v curl >/dev/null 2>&1; then
-  echo "[INFO] Installing curl and ca-certificates..."
-  sudo apt-get update
-  sudo apt-get install -y curl ca-certificates
-fi
-
-# Tải và chạy script NodeSource (không lưu file tạm)
-curl -fsSL "${SETUP_URL}" | sudo -E bash -
-
-# Cài Node.js
-echo "[INFO] Installing nodejs package..."
-sudo apt-get update
-sudo apt-get install -y nodejs
-
-# Kiểm tra node/npm có tồn tại không
-if ! command -v node >/dev/null 2>&1; then
-  echo "[ERROR] Node.js installation failed (node not found)." >&2
-  exit 1
-fi
-
-if ! command -v npm >/dev/null 2>&1; then
-  echo "[ERROR] npm not found after installing nodejs." >&2
-  exit 1
-fi
-
-# Cài pm2 + pm2-logrotate nếu chưa có
-if ! command -v pm2 >/dev/null 2>&1; then
-  echo "[INFO] Installing pm2 globally..."
-  sudo npm install -g pm2@latest
-  echo "[INFO] Installing pm2-logrotate module..."
-  sudo pm2 install pm2-logrotate || true
-fi
-
-echo "======================================="
-echo " Installed versions:"
+echo "[INFO] Node.js installed:"
 node -v
 npm -v
-pm2 -v || echo "pm2 not installed"
+
+###########################################
+# 4. Cài PM2 + PM2-Logrotate
+###########################################
+
+echo "[INFO] Installing PM2 globally..."
+npm install -g pm2 pm2-logrotate
+
+echo "[INFO] PM2 installed:"
+pm2 -v
+
+###########################################
+# 5. Đảm bảo NVM load mỗi lần SSH
+###########################################
+
+if ! grep -q 'nvm.sh' ~/.bashrc; then
+cat <<'EOF' >> ~/.bashrc
+
+# Load NVM automatically
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+EOF
+fi
+
 echo "======================================="
-echo "Done."
+echo " Installation Completed!"
+echo " Node: $(node -v)"
+echo " NPM:  $(npm -v)"
+echo " PM2:  $(pm2 -v)"
+echo "======================================="
+echo "Use: pm2 start index.js --name app-name"
+echo "======================================="
