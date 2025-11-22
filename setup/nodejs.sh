@@ -2,35 +2,33 @@
 set -euo pipefail
 
 echo "======================================="
-echo " Installing Node.js using NVM (stable)"
-echo " Auto-create SWAP to avoid dpkg kill"
+echo " Installing Node.js using NVM"
+echo " Temporary SWAP enabled during installation"
 echo "======================================="
 
-###########################################
-# 0. Tạo SWAP nếu chưa có (2GB)
-###########################################
+SWAPFILE="/swapfile.temp.nodejs"
 
-SWAPFILE="/swapfile"
+###########################################
+# 0. Tạo SWAP tạm 2GB
+###########################################
 
 if ! grep -q "$SWAPFILE" /proc/swaps; then
-  echo "[INFO] Creating 2GB swap..."
+  echo "[INFO] Creating temporary 2GB swap..."
   sudo fallocate -l 2G "$SWAPFILE" || sudo dd if=/dev/zero of="$SWAPFILE" bs=1M count=2048
   sudo chmod 600 "$SWAPFILE"
   sudo mkswap "$SWAPFILE"
   sudo swapon "$SWAPFILE"
-  echo "$SWAPFILE none swap sw 0 0" | sudo tee -a /etc/fstab > /dev/null
 else
-  echo "[INFO] Swap already exists. Skipping."
+  echo "[INFO] Temporary swap already exists (unexpected)."
 fi
 
-echo "[INFO] Current memory:"
+echo "[INFO] Memory status:"
 free -h
 
 ###########################################
-# 1. Dọn lỗi nodejs bị kẹt trong dpkg (nếu có)
+# 1. Cleanup dpkg if NodeSource failed previously
 ###########################################
-echo "[INFO] Cleaning broken Node.js installation (if exists)..."
-
+echo "[INFO] Cleaning previous broken nodejs installation..."
 sudo dpkg --remove --force-remove-reinstreq nodejs || true
 sudo rm -f /var/cache/apt/archives/nodejs_*_amd64.deb || true
 sudo apt -f install -y || true
@@ -43,42 +41,47 @@ sudo apt update -y
 if [ ! -d "$HOME/.nvm" ]; then
   echo "[INFO] Installing NVM..."
   curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.0/install.sh | bash
-else
-  echo "[INFO] NVM already installed. Skipping."
 fi
 
-# Load NVM vào shell hiện tại
 export NVM_DIR="$HOME/.nvm"
 # shellcheck source=/dev/null
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 
 ###########################################
-# 3. Cài Node.js (default: 20 LTS)
+# 3. Install Node.js via NVM (default: 20)
 ###########################################
 
 NODE_VERSION="${1:-20}"
-echo "[INFO] Installing Node.js v${NODE_VERSION} using NVM..."
-
+echo "[INFO] Installing Node.js v${NODE_VERSION}..."
 nvm install "$NODE_VERSION"
 nvm alias default "$NODE_VERSION"
 nvm use "$NODE_VERSION"
 
-echo "[INFO] Node.js installed:"
+echo "[INFO] Node installed:"
 node -v
 npm -v
 
 ###########################################
-# 4. Cài PM2 + PM2-Logrotate
+# 4. Install PM2 + logrotate
 ###########################################
 
-echo "[INFO] Installing PM2 globally..."
+echo "[INFO] Installing PM2..."
 npm install -g pm2 pm2-logrotate
-
-echo "[INFO] PM2 installed:"
 pm2 -v
 
 ###########################################
-# 5. Đảm bảo NVM load mỗi lần SSH
+# 5. Xoá swap tạm (sau khi cài xong)
+###########################################
+
+echo "[INFO] Removing temporary swap..."
+sudo swapoff "$SWAPFILE" || true
+sudo rm -f "$SWAPFILE" || true
+
+echo "[INFO] Final memory state:"
+free -h
+
+###########################################
+# 6. Đảm bảo NVM load auto mỗi lần SSH
 ###########################################
 
 if ! grep -q 'nvm.sh' ~/.bashrc; then
@@ -95,6 +98,5 @@ echo " Installation Completed!"
 echo " Node: $(node -v)"
 echo " NPM:  $(npm -v)"
 echo " PM2:  $(pm2 -v)"
-echo "======================================="
-echo "Use: pm2 start index.js --name app-name"
+echo " Temporary SWAP has been removed."
 echo "======================================="
