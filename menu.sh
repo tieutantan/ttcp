@@ -15,12 +15,12 @@ readonly CYAN='\033[0;36m'
 readonly BOLD='\033[1m'
 readonly NC='\033[0m'
 
-readonly BORDER="━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-readonly CHECK="✅"
-readonly ERROR="❌"
-readonly WARN="⚠️"
-readonly INFO="ℹ️"
-readonly ARROW="➜"
+readonly BORDER="=================================================="
+readonly CHECK="[OK]"
+readonly ERROR="[ERROR]"
+readonly WARN="[WARN]"
+readonly INFO="[INFO]"
+readonly ARROW=">"
 
 # ====================================
 # Source utilities & Setup
@@ -148,13 +148,13 @@ main_loop() {
                 updateTTCP
                 ;;
             0)
-                echo -e "${GREEN}${CHECK} Goodbye! 👋${NC}"
+                echo -e "${GREEN}${CHECK} Goodbye!${NC}"
                 echo ""
                 exit 0
                 ;;
             *)
-                echo -e "${RED}${ERROR} Invalid choice: '$choice'${NC}"
-                echo -e "${YELLOW}${INFO} Please enter 0-7, 98, or 99${NC}"
+                echo -e "${RED}${ERROR} Invalid menu choice: '$choice'${NC}"
+                echo -e "${YELLOW}${INFO} Valid options are: 0-7, 98, 99${NC}"
                 sleep 1
                 ;;
         esac

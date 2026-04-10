@@ -4,7 +4,8 @@
 validate_domain() {
     local domain="$1"
     if ! echo "$domain" | grep -qE '^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$'; then
-        echo "TTCP: Invalid domain format: $domain"
+        echo "TTCP: [ERROR] Invalid domain format: '$domain'"
+        echo "TTCP: [INFO] Domain must be a valid FQDN (e.g., example.com, sub.example.com)"
         exit 1
     fi
 }
@@ -13,7 +14,8 @@ validate_domain() {
 validate_port() {
     local port="$1"
     if ! echo "$port" | grep -qE '^[0-9]+$' || [ "$port" -lt 1 ] || [ "$port" -gt 65535 ]; then
-        echo "TTCP: Invalid port: $port (must be 1-65535)"
+        echo "TTCP: [ERROR] Invalid port: '$port'"
+        echo "TTCP: [INFO] Port must be a number between 1 and 65535"
         exit 1
     fi
 }
@@ -25,7 +27,9 @@ then
     domain=$1
     app_local_port=$2
 else
-    echo "TTCP: add-domain usage: $0 domain app_local_port"
+    echo "TTCP: [ERROR] Invalid number of arguments"
+    echo "TTCP: [INFO] Usage: $0 <domain> <port>"
+    echo "TTCP: [INFO] Example: $0 example.com 3000"
     exit 1
 fi
 
@@ -35,13 +39,15 @@ validate_port "$app_local_port"
 
 # Check domain exist (same domain should not be added twice)
 if ls /etc/nginx/conf.d/"$domain"-*.conf >/dev/null 2>&1; then
-    echo "TTCP: The $domain already exists."
+    echo "TTCP: [ERROR] Domain '$domain' already exists"
+    echo "TTCP: [INFO] A domain can only be added once"
     exit 1
 fi
 
 # Check if server_name already exists in any config file to prevent bypass via file rename
 if grep -r "server_name.*$domain" /etc/nginx/conf.d/*.conf >/dev/null 2>&1; then
-    echo "TTCP: The $domain already exists in Nginx config."
+    echo "TTCP: [ERROR] Domain '$domain' is already configured in Nginx"
+    echo "TTCP: [INFO] Please remove the existing configuration first"
     exit 1
 fi
 
@@ -68,7 +74,8 @@ server {
 
 # Test nginx configuration syntax
 if ! nginx -t -c /etc/nginx/nginx.conf 2>&1 | grep -q "successful"; then
-    echo "TTCP: Nginx config test failed for $domain. Rolling back."
+    echo "TTCP: [ERROR] Nginx configuration syntax check failed for domain '$domain'"
+    echo "TTCP: [INFO] Rolling back changes"
     rm -f "$temp_conf"
     exit 1
 fi
@@ -78,13 +85,14 @@ mv "$temp_conf" "$conf_file"
 
 # Restart Nginx to apply the changes
 if ! nginx -s reload; then
-    echo "TTCP: Failed to reload Nginx for $domain. Rolling back."
+    echo "TTCP: [ERROR] Failed to reload Nginx after adding domain '$domain'"
+    echo "TTCP: [INFO] Rolling back changes"
     rm -f "$conf_file"
     exit 1
 fi
 
 echo "==================================="
-echo "TTCP: added $domain:$app_local_port to Nginx!"
+echo "TTCP: [OK] Added '$domain:$app_local_port' to Nginx"
 echo "==================================="
 
 exit 0

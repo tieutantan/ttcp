@@ -4,7 +4,8 @@
 validate_domain() {
     local domain="$1"
     if ! echo "$domain" | grep -qE '^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$'; then
-        echo "TTCP: Invalid domain format: $domain"
+        echo "TTCP: [ERROR] Invalid domain format: '$domain'"
+        echo "TTCP: [INFO] Domain must be a valid FQDN (e.g., example.com, sub.example.com)"
         exit 1
     fi
 }
@@ -12,7 +13,9 @@ validate_domain() {
 # Check if the domain argument is provided
 if [ -z "$1" ]
 then
-    echo "TTCP: remove-domain usage: $0 domain"
+    echo "TTCP: [ERROR] Domain argument is required"
+    echo "TTCP: [INFO] Usage: $0 <domain>"
+    echo "TTCP: [INFO] Example: $0 example.com"
     exit 1
 fi
 
@@ -47,18 +50,20 @@ done
 # Check if any files were removed
 if [ "$removed_count" -eq 0 ]
 then
-    echo "TTCP: No configuration found for domain: $domain"
+    echo "TTCP: [ERROR] Domain '$domain' not found"
+    echo "TTCP: [INFO] This domain has not been configured in Nginx"
     exit 1
 fi
 
 # Reload the Nginx configuration
 if ! nginx -s reload; then
-    echo "TTCP: Failed to reload Nginx after removing $domain."
+    echo "TTCP: [ERROR] Failed to reload Nginx after removing domain '$domain'"
+    echo "TTCP: [INFO] Changes were not applied"
     exit 1
 fi
 
 echo "=============================="
-echo "TTCP: $domain has been removed ($removed_count file(s))."
+echo "TTCP: [OK] Domain '$domain' removed ($removed_count config file(s))"
 echo "=============================="
 
 exit 0

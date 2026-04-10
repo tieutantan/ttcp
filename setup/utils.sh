@@ -150,6 +150,7 @@ function addDomain() {
 
     if ! [[ $domain =~ ^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$ ]]; then
       echo -e "${RED}${ERROR} Invalid domain format: $domain${NC}"
+      echo -e "${YELLOW}${INFO} Domain must be a valid FQDN (e.g., example.com, sub.example.com)${NC}"
       echo "$line"
       return 1
     fi
@@ -157,17 +158,21 @@ function addDomain() {
     read -p "Enter app local port (1-65535): " app_local_port
 
     if ! [[ $app_local_port =~ ^[0-9]+$ ]] || [ "$app_local_port" -lt 1 ] || [ "$app_local_port" -gt 65535 ]; then
-      echo -e "${RED}${ERROR} Invalid port: $app_local_port (must be 1-65535)${NC}"
+      echo -e "${RED}${ERROR} Invalid port: $app_local_port${NC}"
+      echo -e "${YELLOW}${INFO} Port must be a number between 1 and 65535${NC}"
       echo "$line"
       return 1
     fi
 
     echo -e "${BLUE}${INFO} Adding domain: $domain → port $app_local_port${NC}"
 
-    if docker exec ttcp add "$domain" "$app_local_port"; then
+    # Capture docker exec output for better error reporting
+    local docker_output
+    if docker_output=$(docker exec ttcp add "$domain" "$app_local_port" 2>&1); then
       echo -e "${GREEN}${CHECK} Domain added successfully!${NC}"
     else
       echo -e "${RED}${ERROR} Failed to add domain${NC}"
+      echo -e "${YELLOW}${INFO} Reason: $docker_output${NC}"
       echo "$line"
       return 1
     fi
@@ -206,16 +211,20 @@ function removeDomain() {
 
     if ! [[ $domain =~ ^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$ ]]; then
       echo -e "${RED}${ERROR} Invalid domain format: $domain${NC}"
+      echo -e "${YELLOW}${INFO} Domain must be a valid FQDN (e.g., example.com, sub.example.com)${NC}"
       echo "$line"
       return 1
     fi
 
     echo -e "${BLUE}${INFO} Removing domain: $domain${NC}"
 
-    if docker exec ttcp remove "$domain"; then
+    # Capture docker exec output for better error reporting
+    local docker_output
+    if docker_output=$(docker exec ttcp remove "$domain" 2>&1); then
       echo -e "${GREEN}${CHECK} Domain removed successfully!${NC}"
     else
       echo -e "${RED}${ERROR} Failed to remove domain${NC}"
+      echo -e "${YELLOW}${INFO} Reason: $docker_output${NC}"
       echo "$line"
       return 1
     fi
@@ -232,7 +241,8 @@ function addSSHKey() {
 
     if ! [[ $repoUrl =~ ^git@[a-zA-Z0-9.-]+:[a-zA-Z0-9._-]+/[a-zA-Z0-9._-]+\.git$ ]]; then
       echo -e "${RED}${ERROR} Invalid git URL format${NC}"
-      echo -e "${YELLOW}${INFO} Expected: git@github.com:username/repo.git${NC}"
+      echo -e "${YELLOW}${INFO} Expected format: git@github.com:username/repo.git${NC}"
+      echo -e "${YELLOW}${INFO} Example: git@github.com:myuser/myproject.git${NC}"
       echo "$line"
       return 1
     fi

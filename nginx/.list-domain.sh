@@ -28,5 +28,5 @@ do
     fi
 done
 
-echo "TTCP: List $counter Domains."
+echo "TTCP: [OK] Listed $counter domain(s)"
 echo "==========================="
