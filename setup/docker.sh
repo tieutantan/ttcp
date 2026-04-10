@@ -152,30 +152,76 @@ fi
 
 echo "[INFO] Enabling Docker service on boot..."
 sudo systemctl daemon-reload
-sudo systemctl enable docker
-sudo systemctl start docker
+
+# Enable service
+if ! sudo systemctl enable docker; then
+  echo "[WARN] Failed to enable docker service, continuing anyway..."
+fi
+
+# Start daemon with retry logic
+echo "[INFO] Starting Docker daemon..."
+MAX_START_RETRIES=3
+START_RETRY=0
+
+while [ $START_RETRY -lt $MAX_START_RETRIES ]; do
+  if sudo systemctl start docker 2>/dev/null; then
+    echo "[INFO] Docker daemon started successfully."
+    break
+  else
+    START_RETRY=$((START_RETRY + 1))
+    if [ $START_RETRY -lt $MAX_START_RETRIES ]; then
+      echo "[WARN] Docker start failed, retry $START_RETRY/$MAX_START_RETRIES..."
+      sleep 2
+    else
+      echo "[ERROR] Failed to start Docker after $MAX_START_RETRIES attempts."
+      echo "[ERROR] Trying systemctl reset-failed..."
+      sudo systemctl reset-failed docker 2>/dev/null || true
+      sudo systemctl start docker 2>/dev/null || true
+    fi
+  fi
+done
 
 ###########################################
 # 10. Wait for Docker daemon to be ready
 ###########################################
 
 echo "[INFO] Waiting for Docker daemon to be ready..."
-MAX_WAIT=30
+MAX_WAIT=60  # Increased from 30s to 60s for slow systems
 WAIT_COUNT=0
+DOCKER_SOCKET="/var/run/docker.sock"
+
 while [ $WAIT_COUNT -lt $MAX_WAIT ]; do
-  if docker info > /dev/null 2>&1; then
-    echo "[INFO] Docker daemon is ready!"
-    break
-  else
-    WAIT_COUNT=$((WAIT_COUNT + 1))
-    if [ $WAIT_COUNT -lt $MAX_WAIT ]; then
-      echo "[INFO] Waiting for Docker... ($WAIT_COUNT/$MAX_WAIT)"
-      sleep 1
-    else
-      echo "[ERROR] Docker daemon failed to start within ${MAX_WAIT}s."
-      echo "[ERROR] Check: sudo systemctl status docker"
-      exit 1
+  # Check 1: Docker socket exists and is accessible
+  if [ -S "$DOCKER_SOCKET" ]; then
+    echo "[INFO] Docker socket found ($DOCKER_SOCKET)"
+
+    # Check 2: Try docker info (may fail if socket has permission issues)
+    if sudo docker info > /dev/null 2>&1; then
+      echo "[INFO] ✅ Docker daemon is ready!"
+      break
     fi
+  fi
+
+  WAIT_COUNT=$((WAIT_COUNT + 1))
+  if [ $WAIT_COUNT -lt $MAX_WAIT ]; then
+    REMAINING=$((MAX_WAIT - WAIT_COUNT))
+    echo "[INFO] Waiting for Docker... ($WAIT_COUNT/$MAX_WAIT, $REMAINING s remaining)"
+    sleep 1
+  else
+    echo "[ERROR] ❌ Docker daemon failed to start within ${MAX_WAIT}s."
+    echo "[ERROR] Diagnostic information:"
+    echo "[ERROR] 1. Check systemctl status:"
+    sudo systemctl status docker --no-pager 2>&1 | head -20
+    echo ""
+    echo "[ERROR] 2. Check for errors in journal:"
+    sudo journalctl -u docker -n 20 --no-pager 2>&1 | tail -20
+    echo ""
+    echo "[ERROR] Solutions to try:"
+    echo "[ERROR] - Run: sudo systemctl restart docker"
+    echo "[ERROR] - Run: sudo systemctl reset-failed docker"
+    echo "[ERROR] - Check disk space: df -h"
+    echo "[ERROR] - Check memory: free -h"
+    exit 1
   fi
 done
 
