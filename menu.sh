@@ -1,54 +1,173 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
-# Source the utils.sh file
-source ./setup/utils.sh
+# TTCP Main Menu - Refactored with Beautiful Decoration & Better UX
+# Features: Loop-based (no recursion), Colors, Validation, Error Handling
 
-# Path to the SSH config file
-# shellcheck disable=SC2034
-sshConfigFile=~/.ssh/config
-# shellcheck disable=SC2034
-sshKeyDirectory=~/.ssh/ttcp_ssh_key
-line="---------------"
+# ====================================
+# Color & Decoration Constants
+# ====================================
+readonly RED='\033[0;31m'
+readonly GREEN='\033[0;32m'
+readonly YELLOW='\033[1;33m'
+readonly BLUE='\033[0;34m'
+readonly CYAN='\033[0;36m'
+readonly BOLD='\033[1m'
+readonly NC='\033[0m'
 
-# display menu and get user choice for the SSH tools menu options 1-4
-function MenuTTCP() {
-    echo "$line"
-    echo "|| TTCP MENU ||"
-    echo "$line"
-    checkDockerAndDockerCompose
-    echo "[1] Add Domain"
-    echo "[2] List Domain"
-    echo "[3] Remove Domain"
-    echo "$line"
-    echo "[4] Add SSH Key"
-    echo "[5] List SSH Keys"
-    echo "$line"
-    echo "[6] List Clone Commands"
-    echo "[7] Reload Nginx"
-    echo "$line"
-    echo "[98] Start TTCP"
-    echo "[99] Update TTCP"
-    echo "$line"
-    echo "[0] Exit / Ctrl+C"
-    # shellcheck disable=SC2162
-    read -p "Enter your choice: " choice
-    case $choice in
-        1) addDomain ;;
-        2) listDomains ;;
-        3) removeDomain ;;
-        4) addSSHKey ;;
-        5) listSSHKeys ;;
-        6) listCloneCommands ;;
-        7) reloadNginx ;;
+readonly BORDER="━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+readonly CHECK="✅"
+readonly ERROR="❌"
+readonly WARN="⚠️"
+readonly INFO="ℹ️"
+readonly ARROW="➜"
 
-        98) ttcpStartDockerContainer ;;
-        99) updateTTCP ;;
+# ====================================
+# Source utilities & Setup
+# ====================================
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-        0) exit 0 ;;
+if [ ! -f "$SCRIPT_DIR/setup/utils.sh" ]; then
+  echo -e "${RED}${ERROR} setup/utils.sh not found!${NC}"
+  echo -e "${YELLOW}${INFO} Please run from ttcp root directory${NC}"
+  exit 1
+fi
 
-        *) echo "Invalid choice. Please try again." && MenuTTCP ;;
-    esac
+source "$SCRIPT_DIR/setup/utils.sh"
+
+# Global variables for utils.sh
+export line="───────────────────────────"
+export sshConfigFile=~/.ssh/config
+export sshKeyDirectory=~/.ssh/ttcp_ssh_key
+
+# ====================================
+# Display Functions
+# ====================================
+
+print_header() {
+    clear
+    echo -e "${CYAN}${BORDER}${NC}"
+    echo -e "${BOLD}${CYAN}                    🚀 TTCP CONTROL PANEL${NC}"
+    echo -e "${CYAN}${BORDER}${NC}"
+    echo ""
 }
 
-# run MenuTTCP function to display the SSH tools menu
-MenuTTCP
+print_menu() {
+    echo -e "${BLUE}${BOLD}Main Menu Options:${NC}"
+    echo ""
+    echo -e "  ${BOLD}Domain Management:${NC}"
+    echo -e "    ${ARROW} ${CYAN}[1]${NC} Add Domain"
+    echo -e "    ${ARROW} ${CYAN}[2]${NC} List Domains"
+    echo -e "    ${ARROW} ${CYAN}[3]${NC} Remove Domain"
+    echo ""
+    echo -e "  ${BOLD}SSH Key Management:${NC}"
+    echo -e "    ${ARROW} ${CYAN}[4]${NC} Add SSH Key"
+    echo -e "    ${ARROW} ${CYAN}[5]${NC} List SSH Keys"
+    echo ""
+    echo -e "  ${BOLD}Repository & Services:${NC}"
+    echo -e "    ${ARROW} ${CYAN}[6]${NC} List Clone Commands"
+    echo -e "    ${ARROW} ${CYAN}[7]${NC} Reload Nginx"
+    echo ""
+    echo -e "  ${BOLD}System Management:${NC}"
+    echo -e "    ${ARROW} ${CYAN}[98]${NC} Start TTCP"
+    echo -e "    ${ARROW} ${CYAN}[99]${NC} Update TTCP"
+    echo ""
+    echo -e "  ${ARROW} ${RED}[0]${NC} Exit"
+    echo ""
+    echo -e "${BLUE}${BORDER}${NC}"
+}
+
+print_status() {
+    if docker info &>/dev/null && docker ps --format '{{.Names}}' | grep -q '^ttcp$'; then
+        echo -e "${GREEN}${CHECK} Docker & TTCP Status: RUNNING${NC}"
+    elif docker info &>/dev/null; then
+        echo -e "${YELLOW}${WARN} Docker: RUNNING | TTCP Container: STOPPED${NC}"
+    else
+        echo -e "${RED}${ERROR} Docker Status: NOT RUNNING${NC}"
+    fi
+}
+
+# ====================================
+# Main Menu Loop
+# ====================================
+main_loop() {
+    while true; do
+        print_header
+        print_status
+        echo ""
+        print_menu
+        echo ""
+
+        read -p "$(echo -e ${BOLD}'Enter your choice (0-7, 98-99):'${NC}) " choice
+        echo ""
+
+        case "$choice" in
+            1)
+                echo -e "${CYAN}${BOLD}→ Adding Domain...${NC}"
+                echo -e "${BLUE}${BORDER}${NC}"
+                addDomain
+                ;;
+            2)
+                echo -e "${CYAN}${BOLD}→ Listing Domains...${NC}"
+                echo -e "${BLUE}${BORDER}${NC}"
+                listDomains
+                ;;
+            3)
+                echo -e "${CYAN}${BOLD}→ Removing Domain...${NC}"
+                echo -e "${BLUE}${BORDER}${NC}"
+                removeDomain
+                ;;
+            4)
+                echo -e "${CYAN}${BOLD}→ Adding SSH Key...${NC}"
+                echo -e "${BLUE}${BORDER}${NC}"
+                addSSHKey
+                ;;
+            5)
+                echo -e "${CYAN}${BOLD}→ Listing SSH Keys...${NC}"
+                echo -e "${BLUE}${BORDER}${NC}"
+                listSSHKeys
+                ;;
+            6)
+                echo -e "${CYAN}${BOLD}→ Listing Clone Commands...${NC}"
+                echo -e "${BLUE}${BORDER}${NC}"
+                listCloneCommands
+                ;;
+            7)
+                echo -e "${CYAN}${BOLD}→ Reloading Nginx...${NC}"
+                echo -e "${BLUE}${BORDER}${NC}"
+                reloadNginx
+                ;;
+            98)
+                echo -e "${CYAN}${BOLD}→ Starting TTCP Container...${NC}"
+                echo -e "${BLUE}${BORDER}${NC}"
+                ttcpStartDockerContainer
+                ;;
+            99)
+                echo -e "${CYAN}${BOLD}→ Updating TTCP...${NC}"
+                echo -e "${BLUE}${BORDER}${NC}"
+                updateTTCP
+                ;;
+            0)
+                echo -e "${GREEN}${CHECK} Goodbye! 👋${NC}"
+                echo ""
+                exit 0
+                ;;
+            *)
+                echo -e "${RED}${ERROR} Invalid choice: '$choice'${NC}"
+                echo -e "${YELLOW}${INFO} Please enter 0-7, 98, or 99${NC}"
+                sleep 1
+                ;;
+        esac
+
+        if [ "$choice" != "0" ]; then
+            echo ""
+            read -p "$(echo -e ${BOLD}'Press Enter to continue...'${NC}) " dummy
+        fi
+    done
+}
+
+# ====================================
+# Entry Point
+# ====================================
+main_loop
+

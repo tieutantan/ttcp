@@ -1,177 +1,352 @@
-# utils.sh
+#!/usr/bin/env bash
+set -euo pipefail
 
-# Function to extract the repository name from the URL
+# TTCP Utility Functions - Refactored with Better Error Handling & Validation
+# Features: Input validation, Error handling, Better feedback, Color support
+
+# ====================================
+# Color codes
+# ====================================
+readonly RED='\033[0;31m'
+readonly GREEN='\033[0;32m'
+readonly YELLOW='\033[1;33m'
+readonly BLUE='\033[0;34m'
+readonly NC='\033[0m'
+
+readonly CHECK="✅"
+readonly ERROR="❌"
+readonly WARN="⚠️"
+readonly INFO="ℹ️"
+
+# ====================================
+# URL Parsing Functions
+# ====================================
+
 function getRepositoryName() {
   local url="$1"
   local regex="([^/]+)\.git$"
   if [[ $url =~ $regex ]]; then
     echo "${BASH_REMATCH[1]}"
+    return 0
+  else
+    echo -e "${RED}${ERROR} Invalid repository URL${NC}" >&2
+    return 1
   fi
 }
-# Example usage: getRepositoryName "git@github.com:tieutantan/TEST.nam-Fail_test.git"
-# Output: TEST.nam-Fail_test
 
-# Function to extract the username from the URL
 function getUsername() {
   local url="$1"
   local regex=":([^/]+)/"
   if [[ $url =~ $regex ]]; then
     echo "${BASH_REMATCH[1]}"
+    return 0
+  else
+    echo -e "${RED}${ERROR} Cannot extract username${NC}" >&2
+    return 1
   fi
 }
-# Example usage: getUsername "git@github.com:tieutantan/TEST.nam-Fail_test.git"
-# Output: tieutantan
 
-# Function to extract the domain from the URL
 function getDomain() {
   local url="$1"
   local regex="([^@:/]+@)?([^:/]+)(:[0-9]+)?"
   if [[ $url =~ $regex ]]; then
     echo "${BASH_REMATCH[2]}"
+    return 0
+  else
+    echo -e "${RED}${ERROR} Cannot extract domain${NC}" >&2
+    return 1
   fi
 }
-# Example usage: getDomain "git@github.com:tieutantan/TEST.nam-Fail.git"
-# Output: github.com
 
-# Function to create a directory if it does not exist
+# ====================================
+# File Helpers
+# ====================================
+
 function createDirectoryIfNeeded() {
   local directory="$1"
   if [ ! -d "$directory" ]; then
-    mkdir -p "$directory"
+    if mkdir -p "$directory"; then
+      echo -e "${GREEN}${CHECK} Created directory: $directory${NC}" >&2
+    else
+      echo -e "${RED}${ERROR} Failed to create: $directory${NC}" >&2
+      return 1
+    fi
   fi
 }
-# Example usage: createDirectoryIfNeeded "/path/to/directory"
-# Creates the directory if it does not exist
 
-# Function to add SSH key configuration to the SSH config file
+function removeEmptyLines() {
+  local file="$1"
+  if [ ! -f "$file" ]; then
+    echo -e "${RED}${ERROR} File not found: $file${NC}" >&2
+    return 1
+  fi
+  if sed -i '/^$/d' "$file"; then
+    return 0
+  else
+    echo -e "${RED}${ERROR} Failed to clean file: $file${NC}" >&2
+    return 1
+  fi
+}
+
+# ====================================
+# SSH Configuration
+# ====================================
+
 function addSSHKeyConfig() {
   local keyName="$1"
   local hostName="$2"
   local sshConfig="$3"
   local cloneCommand="$4"
-  local sshKeyBlock="
+
+  if [ -z "$keyName" ] || [ -z "$hostName" ] || [ -z "$sshConfig" ] || [ -z "$cloneCommand" ]; then
+    echo -e "${RED}${ERROR} Missing parameters for SSH config${NC}" >&2
+    return 1
+  fi
+
+  if [ ! -f "$sshConfig" ]; then
+    touch "$sshConfig" && chmod 600 "$sshConfig" || {
+      echo -e "${RED}${ERROR} Failed to create $sshConfig${NC}" >&2
+      return 1
+    }
+  fi
+
+  if grep -q "# start $keyName" "$sshConfig" 2>/dev/null; then
+    sed -i "/^# start $keyName$/,/^# end $keyName$/d" "$sshConfig" || true
+  fi
+
+  cat >> "$sshConfig" << EOF
+
 # start $keyName
-  Host $keyName
+Host $keyName
   HostName $hostName
   User git
   PreferredAuthentications publickey
   IdentityFile ~/.ssh/ttcp_ssh_key/$keyName
 # TTCP_CLONE_CMD # $cloneCommand
 # end $keyName
-  "
-  if grep -q "# start $keyName" "$sshConfig"; then
-    sed -i "/^# start $keyName$/,/^# end $keyName$/d" "$sshConfig"
-  fi
-  echo "$sshKeyBlock" >> "$sshConfig"
-}
-# Example usage: addSSHKeyConfig "TEST.nam-Fail" "github.com" "~/.ssh/config"
-# Adds the SSH key configuration for the repository to the SSH config file
-
-# Function to remove empty lines from a file
-function removeEmptyLines() {
-  local file="$1"
-  sed -i '/^$/d' "$file"
-}
-# Example usage: removeEmptyLines "~/.ssh/config"
-# Removes empty lines from the specified file
-
-function addSSHKey() {
-    # Prompt the user for the GitHub repository URL
-    # shellcheck disable=SC2162
-    read -p "Enter the git repository URL (ex: git@github.com:tieutantan/ttcp.git): " repoUrl
-    # Run the ssh-keygen.sh script with the repository URL as an argument
-    ./setup/ssh-keygen.sh "$repoUrl"
-    MenuTTCP
+EOF
 }
 
-function listSSHKeys() {
-    # List all SSH keys in the sshKeyDirectory
-    # shellcheck disable=SC2154
-    echo "$line"
-    # shellcheck disable=SC2154
-    ls -1 "$sshKeyDirectory"/*.pub
-    echo "$line"
-    MenuTTCP
-}
+# ====================================
+# Domain Management
+# ====================================
 
-function listCloneCommands() {
-    # Read the SSH config file and list all lines with the format # CLONE CMD # xxxxxx
-    echo "$line"
-    # shellcheck disable=SC2154
-    grep -oP '(?<=# TTCP_CLONE_CMD # ).*' "$sshConfigFile"
-    # shellcheck disable=SC2086
-    echo $line
-    MenuTTCP
-}
-
-function reloadNginx() {
-    # Reload the NGINX service created by the TTCP Docker container
-    docker exec ttcp nginx -s reload
-    MenuTTCP
-}
-
-
-
-# Add domain by command `docker exec ttcp add [domain] [app_local_port]` format
 function addDomain() {
-    # shellcheck disable=SC2162
-    read -p "Add Domain: Enter the domain: " domain
-    # shellcheck disable=SC2162
-    read -p "Add Domain: Enter the app local port: " app_local_port
-    docker exec ttcp add "$domain" "$app_local_port"
-    MenuTTCP
-}
+    echo "$line"
+    read -p "Enter domain name (e.g., example.com): " domain
 
-function updateTTCP() {
-    # Pull the latest changes from the remote repository
-    git fetch --all && git reset --hard origin/master && git pull
-    docker-compose up -d --build
-    # Finished update no need auto-open MenuTTCP because it cached, so we need to re-run it
+    if ! [[ $domain =~ ^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$ ]]; then
+      echo -e "${RED}${ERROR} Invalid domain format: $domain${NC}"
+      echo "$line"
+      return 1
+    fi
+
+    read -p "Enter app local port (1-65535): " app_local_port
+
+    if ! [[ $app_local_port =~ ^[0-9]+$ ]] || [ "$app_local_port" -lt 1 ] || [ "$app_local_port" -gt 65535 ]; then
+      echo -e "${RED}${ERROR} Invalid port: $app_local_port (must be 1-65535)${NC}"
+      echo "$line"
+      return 1
+    fi
+
+    echo -e "${BLUE}${INFO} Adding domain: $domain → port $app_local_port${NC}"
+
+    if docker exec ttcp add "$domain" "$app_local_port"; then
+      echo -e "${GREEN}${CHECK} Domain added successfully!${NC}"
+    else
+      echo -e "${RED}${ERROR} Failed to add domain${NC}"
+      echo "$line"
+      return 1
+    fi
+    echo "$line"
 }
 
 function listDomains() {
-    # List all SSH keys in the sshKeyDirectory
     echo "$line"
-    docker exec ttcp list
+    if docker exec ttcp list; then
+      echo -e "${GREEN}${CHECK} Domains listed${NC}"
+    else
+      echo -e "${RED}${ERROR} Failed to list domains${NC}"
+      echo "$line"
+      return 1
+    fi
     echo "$line"
-    MenuTTCP
 }
 
 function removeDomain() {
-    # shellcheck disable=SC2162
-    read -p "Enter the domain name: " domain
-    docker exec ttcp remove "$domain"
-    MenuTTCP
+    echo "$line"
+    read -p "Enter domain name to remove: " domain
+
+    if ! [[ $domain =~ ^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$ ]]; then
+      echo -e "${RED}${ERROR} Invalid domain format: $domain${NC}"
+      echo "$line"
+      return 1
+    fi
+
+    echo -e "${BLUE}${INFO} Removing domain: $domain${NC}"
+
+    if docker exec ttcp remove "$domain"; then
+      echo -e "${GREEN}${CHECK} Domain removed successfully!${NC}"
+    else
+      echo -e "${RED}${ERROR} Failed to remove domain${NC}"
+      echo "$line"
+      return 1
+    fi
+    echo "$line"
 }
+
+# ====================================
+# SSH Management
+# ====================================
+
+function addSSHKey() {
+    echo "$line"
+    read -p "Enter git repository URL (e.g., git@github.com:user/repo.git): " repoUrl
+
+    if ! [[ $repoUrl =~ ^git@[a-zA-Z0-9.-]+:[a-zA-Z0-9._-]+/[a-zA-Z0-9._-]+\.git$ ]]; then
+      echo -e "${RED}${ERROR} Invalid git URL format${NC}"
+      echo -e "${YELLOW}${INFO} Expected: git@github.com:username/repo.git${NC}"
+      echo "$line"
+      return 1
+    fi
+
+    if ./setup/ssh-keygen.sh "$repoUrl"; then
+      echo -e "${GREEN}${CHECK} SSH key added successfully!${NC}"
+    else
+      echo -e "${RED}${ERROR} Failed to add SSH key${NC}"
+      return 1
+    fi
+    echo "$line"
+}
+
+function listSSHKeys() {
+    echo "$line"
+    if [ -d "$sshKeyDirectory" ]; then
+      if ls "$sshKeyDirectory"/*.pub 1>/dev/null 2>&1; then
+        ls -1 "$sshKeyDirectory"/*.pub
+        echo -e "${GREEN}${CHECK} SSH keys listed${NC}"
+      else
+        echo -e "${YELLOW}${WARN} No SSH keys found${NC}"
+      fi
+    else
+      echo -e "${YELLOW}${WARN} SSH key directory not found${NC}"
+    fi
+    echo "$line"
+}
+
+function listCloneCommands() {
+    echo "$line"
+    if [ -f "$sshConfigFile" ]; then
+      if grep -q "# TTCP_CLONE_CMD #" "$sshConfigFile" 2>/dev/null; then
+        grep -oP '(?<=# TTCP_CLONE_CMD # ).*' "$sshConfigFile" 2>/dev/null || true
+        echo -e "${GREEN}${CHECK} Clone commands listed${NC}"
+      else
+        echo -e "${YELLOW}${WARN} No clone commands found. Add SSH keys first!${NC}"
+      fi
+    else
+      echo -e "${YELLOW}${WARN} SSH config not found${NC}"
+    fi
+    echo "$line"
+}
+
+# ====================================
+# Nginx Management
+# ====================================
+
+function reloadNginx() {
+    echo "$line"
+    echo -e "${BLUE}${INFO} Reloading Nginx...${NC}"
+
+    if docker exec ttcp nginx -s reload; then
+      echo -e "${GREEN}${CHECK} Nginx reloaded successfully!${NC}"
+    else
+      echo -e "${RED}${ERROR} Failed to reload Nginx${NC}"
+      echo "$line"
+      return 1
+    fi
+    echo "$line"
+}
+
+# ====================================
+# Docker Management
+# ====================================
 
 function ttcpStartDockerContainer() {
-    docker-compose up -d --build
-    MenuTTCP
+    echo "$line"
+    echo -e "${BLUE}${INFO} Starting TTCP container...${NC}"
+
+    if docker-compose up -d --build; then
+      echo -e "${GREEN}${CHECK} TTCP container started!${NC}"
+      sleep 2
+      echo ""
+      echo -e "${BLUE}Container Status:${NC}"
+      docker-compose ps
+    else
+      echo -e "${RED}${ERROR} Failed to start TTCP${NC}"
+      echo -e "${YELLOW}${INFO} Check: docker-compose logs${NC}"
+      echo "$line"
+      return 1
+    fi
+    echo "$line"
 }
 
+function updateTTCP() {
+    echo "$line"
+    echo -e "${BLUE}${INFO} Updating TTCP from git...${NC}"
+
+    if git fetch --all && git reset --hard origin/master && git pull; then
+      echo -e "${GREEN}${CHECK} Git repository updated${NC}"
+    else
+      echo -e "${RED}${ERROR} Failed to update from git${NC}"
+      echo "$line"
+      return 1
+    fi
+
+    echo -e "${BLUE}${INFO} Rebuilding Docker container...${NC}"
+
+    if docker-compose up -d --build; then
+      echo -e "${GREEN}${CHECK} TTCP updated successfully!${NC}"
+      sleep 2
+      echo ""
+      echo -e "${BLUE}Container Status:${NC}"
+      docker-compose ps
+    else
+      echo -e "${RED}${ERROR} Failed to rebuild container${NC}"
+      echo -e "${YELLOW}${INFO} Check: docker-compose logs${NC}"
+      echo "$line"
+      return 1
+    fi
+    echo "$line"
+}
+
+# ====================================
+# Docker Validation
+# ====================================
+
 function checkDockerAndDockerCompose() {
-     # Check if Docker and Docker Compose are installed
-      if ! command -v docker &> /dev/null || ! command -v docker-compose &> /dev/null; then
-          echo "Docker or Docker Compose not found. Command to install:"
+     if ! command -v docker &> /dev/null || ! command -v docker-compose &> /dev/null; then
+          echo -e "${RED}${ERROR} Docker or Docker Compose not found${NC}"
           echo "$line"
-          echo "./setup/docker.sh"
+          echo -e "${YELLOW}${INFO} Install: ./setup/docker.sh${NC}"
           echo "$line"
           return 1
       fi
 
-      # Check if Docker is running
       if ! docker info &> /dev/null; then
-          echo "Docker service is not running. Start Docker using the command:"
+          echo -e "${RED}${ERROR} Docker service is not running${NC}"
           echo "$line"
-          echo "sudo systemctl start docker"
+          echo -e "${YELLOW}${INFO} Start: sudo systemctl start docker${NC}"
           echo "$line"
           return 1
       fi
 
-      # Check if the TTCP container is running
       if ! docker ps --format '{{.Names}}' | grep -q '^ttcp$'; then
-          echo "TTCP container is not running. Start the TTCP using Menu -> [98]"
+          echo -e "${YELLOW}${WARN} TTCP container is not running${NC}"
+          echo "$line"
+          echo -e "${YELLOW}${INFO} Start: Menu option [98]${NC}"
           echo "$line"
           return 1
       fi
+
+      return 0
 }
