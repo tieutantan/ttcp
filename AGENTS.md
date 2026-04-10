@@ -41,13 +41,22 @@
 
 ## External Dependencies and Integrations
 - **Ubuntu-oriented setup scripts** (`apt-get`, `systemctl`, NodeSource, Docker APT repo) in `setup/docker.sh` and `setup/nodejs.sh`.
-  - `setup/docker.sh`: Installs latest Docker CE + Docker Compose via APT repos; Ubuntu/Debian only.
+  - `setup/docker.sh`: Installs latest Docker CE + Docker Compose via APT repos; Ubuntu/Debian only. **Key improvements** (v2):
+    - Uses safe shell practices: `set -euo pipefail`, `IFS` handling
+    - Validates OS (rejects non-Ubuntu/Debian) before proceeding
+    - Checks if Docker already installed; skips install & just ensures group membership (idempotent)
+    - **Security fix**: Replaces dangerous `chmod 777 /var/run/docker.sock` with `usermod -aG docker $SUDO_USER` (group-based access control)
+    - GPG key via modern keyring management (`gpg --dearmor`) instead of deprecated `apt-key add`
+    - Retry logic for Docker Compose binary download (3 attempts, 2s delays, handles network instability)
+    - Waits for Docker daemon readiness: polls `docker info` for up to 30 seconds after service start (solves post-reboot socket access issues)
+    - Structured logging with `[INFO]`, `[WARN]`, `[ERROR]` prefixes
+    - Verification step captures and validates Docker/Compose version output before proceeding
   - `setup/nodejs.sh`: Installs Node.js (default 20.x LTS, parameterizable 12-23.x) + PM2 + creates 2GB swap; Ubuntu/Debian only; includes dpkg cleanup and dependency checks.
   - **macOS users**: Must manually install Docker Desktop and Docker Compose; setup scripts will fail. No automated setup path for macOS.
 - **Reverse proxy reaches host apps** via Docker host-gateway mapping (`extra_hosts: host.docker.internal:host-gateway` in `docker-compose.yml`).
 - **Default site page** in `nginx/index.html` gets public IP injected at image build time (run curl to `ifconfig.me` in `nginx/Dockerfile`, sed replace `_TTCP_` marker).
 - **Nginx base image**: `nginx:stable-alpine` in `nginx/Dockerfile`.
-- **Shell compatibility**: Host scripts use Bash (shebang `#!/bin/bash`, set options like `set -euo pipefail`); container scripts use POSIX sh (`#!/bin/sh`). Host: Bash functions, test operators; container: sh-portable only.
+- **Shell compatibility**: Host scripts use Bash (shebang `#!/usr/bin/env bash`, set options like `set -euo pipefail`); container scripts use POSIX sh (`#!/bin/sh`). Host: Bash functions, test operators; container: sh-portable only. Modern host scripts include error handling: `set -e` exits on error, `set -u` errors on undefined variables, `set -o pipefail` detects pipe failures, `IFS=$'\n\t'` for safe special character handling.
 
 ## Error Handling and Validation Patterns
 - **Input validation** in container scripts use regex patterns:
