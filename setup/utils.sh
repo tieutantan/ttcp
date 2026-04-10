@@ -8,6 +8,23 @@ set -euo pipefail
 # They will be available in this scope when sourced from menu.sh
 
 # ====================================
+# Docker Permission Check
+# ====================================
+
+function check_docker_permission() {
+  # Check if user can access docker socket
+  if ! docker ps &>/dev/null 2>&1; then
+    echo -e "${RED}${ERROR} Docker permission denied!${NC}"
+    echo -e "${YELLOW}${INFO} Possible solutions:${NC}"
+    echo -e "${YELLOW}${INFO} 1. Run: newgrp docker${NC}"
+    echo -e "${YELLOW}${INFO} 2. Or log out and log back in${NC}"
+    echo -e "${YELLOW}${INFO} 3. Or run setup again: ./setup/docker.sh${NC}"
+    return 1
+  fi
+  return 0
+}
+
+# ====================================
 # URL Parsing Functions
 # ====================================
 
@@ -122,6 +139,13 @@ EOF
 
 function addDomain() {
     echo "$line"
+
+    # Check Docker permission first
+    if ! check_docker_permission; then
+      echo "$line"
+      return 1
+    fi
+
     read -p "Enter domain name (e.g., example.com): " domain
 
     if ! [[ $domain =~ ^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$ ]]; then
@@ -152,6 +176,13 @@ function addDomain() {
 
 function listDomains() {
     echo "$line"
+
+    # Check Docker permission first
+    if ! check_docker_permission; then
+      echo "$line"
+      return 1
+    fi
+
     if docker exec ttcp list; then
       echo -e "${GREEN}${CHECK} Domains listed${NC}"
     else
@@ -164,6 +195,13 @@ function listDomains() {
 
 function removeDomain() {
     echo "$line"
+
+    # Check Docker permission first
+    if ! check_docker_permission; then
+      echo "$line"
+      return 1
+    fi
+
     read -p "Enter domain name to remove: " domain
 
     if ! [[ $domain =~ ^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$ ]]; then
@@ -244,6 +282,13 @@ function listCloneCommands() {
 
 function reloadNginx() {
     echo "$line"
+
+    # Check Docker permission first
+    if ! check_docker_permission; then
+      echo "$line"
+      return 1
+    fi
+
     echo -e "${BLUE}${INFO} Reloading Nginx...${NC}"
 
     if docker exec ttcp nginx -s reload; then
@@ -262,6 +307,13 @@ function reloadNginx() {
 
 function ttcpStartDockerContainer() {
     echo "$line"
+
+    # Check Docker permission first
+    if ! check_docker_permission; then
+      echo "$line"
+      return 1
+    fi
+
     echo -e "${BLUE}${INFO} Starting TTCP container...${NC}"
 
     if docker-compose up -d --build; then
@@ -281,6 +333,13 @@ function ttcpStartDockerContainer() {
 
 function updateTTCP() {
     echo "$line"
+
+    # Check Docker permission first
+    if ! check_docker_permission; then
+      echo "$line"
+      return 1
+    fi
+
     echo -e "${BLUE}${INFO} Updating TTCP from git...${NC}"
 
     if git fetch --all && git reset --hard origin/master && git pull; then

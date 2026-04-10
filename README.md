@@ -181,16 +181,24 @@ mci5BCRd3GbafkkwQMixJEqQHW+qSD root@nw.azure.cloud
 **Next Step:** Add the displayed SSH public key to your GitHub/GitLab account
 
 ### [5] List SSH Keys
+- All keys inside `~/.ssh/ttcp_ssh_key/`
+```shell
+/home/ubuntu/.ssh/ttcp_ssh_key/Laraker.pub
+/home/ubuntu/.ssh/ttcp_ssh_key/ttcp.pub
+/home/ubuntu/.ssh/ttcp_ssh_key/wxt.pub
+```
+
+### [5] List SSH Keys
 - Lists all SSH keys stored in `~/.ssh/ttcp_ssh_key/`
 - Shows filenames of generated public keys
 
 ```shell
-━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━
 /home/ubuntu/.ssh/ttcp_ssh_key/ttcp.pub
 /home/ubuntu/.ssh/ttcp_ssh_key/vue.pub
 /home/ubuntu/.ssh/ttcp_ssh_key/kotlin.pub
 ✅ SSH keys listed
-━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
 ### [6] List Clone Commands
@@ -198,12 +206,12 @@ mci5BCRd3GbafkkwQMixJEqQHW+qSD root@nw.azure.cloud
 - Automatically extracted from `~/.ssh/config`
 
 ```shell
-━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━
 git clone git@ttcp:tieutantan/ttcp.git
 git clone git@vue:vuejs/vue.git
 git clone git@kotlin:JetBrains/kotlin.git
 ✅ Clone commands listed
-━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
 ### [7] Reload Nginx
@@ -213,7 +221,7 @@ git clone git@kotlin:JetBrains/kotlin.git
 
 ```shell
 ℹ️ Reloading Nginx...
-━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━
 ✅ Nginx reloaded successfully!
 ```
 
@@ -223,7 +231,7 @@ git clone git@kotlin:JetBrains/kotlin.git
 
 ```shell
 ℹ️ Starting TTCP container...
-━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━
 ✅ TTCP container started!
 
 Container Status:
@@ -278,6 +286,21 @@ Expected: git@github.com:username/repo.git
 Start: sudo systemctl start docker
 ```
 **Solution:** Run the suggested command to start Docker
+
+### ⚠️ Docker Permission Denied
+```
+permission denied while trying to connect to the docker API at unix:///var/run/docker.sock
+```
+**Solutions (in order):**
+1. Activate docker group in current session: `newgrp docker`
+2. If that doesn't work, log out completely and log back in
+3. If still not working, re-run: `./setup/docker.sh`
+
+**Verify it works:**
+```bash
+docker ps
+# Should show list of containers without sudo
+```
 
 ### ⚠️ TTCP Container Not Running
 ```
@@ -606,6 +629,21 @@ Start: sudo systemctl start docker
 ```
 **Solution:** Run the suggested command to start Docker
 
+### ⚠️ Docker Permission Denied
+```
+permission denied while trying to connect to the docker API at unix:///var/run/docker.sock
+```
+**Solutions (in order):**
+1. Activate docker group in current session: `newgrp docker`
+2. If that doesn't work, log out completely and log back in
+3. If still not working, re-run: `./setup/docker.sh`
+
+**Verify it works:**
+```bash
+docker ps
+# Should show list of containers without sudo
+```
+
 ### ⚠️ TTCP Container Not Running
 ```
 ⚠️ TTCP container is not running
@@ -617,6 +655,79 @@ Start: Menu option [98]
 
 ## Advanced Usage
 
-If you run into a bug or want to work with me to improve it, 
-please consider submitting a pull request. 
-Your help will be much appreciated by the entire community. Thank you!
+### Check Available Ports
+```shell
+sudo lsof -i -P -n | grep LISTEN
+```
+
+### View Docker Container Logs
+```shell
+docker-compose logs -f ttcp
+```
+
+### View Nginx Error Logs
+```shell
+docker exec ttcp tail -f /var/log/nginx/error.log
+```
+
+### Manual Git Operations
+```shell
+git push -f origin master
+git pull origin master
+```
+
+### Add Custom Nginx Config
+```shell
+# Edit manually (changes will persist)
+nano config/domain-name-port.conf
+# Then reload Nginx via menu option [7]
+```
+
+---
+
+## Features Summary
+
+| Feature | Status | Details |
+|---------|--------|---------|
+| **Domain Management** | ✅ | Add/List/Remove domains with validation |
+| **SSH Key Management** | ✅ | Create & manage multiple SSH keys |
+| **Nginx Proxy** | ✅ | Auto-generate reverse proxy configs |
+| **Docker Integration** | ✅ | Easy container management |
+| **Input Validation** | ✅ | FQDN, port, URL validation |
+| **Error Handling** | ✅ | Clear error messages with solutions |
+| **Status Display** | ✅ | Real-time Docker & TTCP status |
+| **PM2 Management** | ✅ | Manage Node.js apps |
+| **Beautiful UI** | ✅ | Colors, emojis, borders |
+
+---
+
+## Requirements
+
+- Ubuntu 22.04 LTS or Ubuntu 24.04 LTS
+- Docker & Docker Compose
+- Git
+- Bash 4.0+
+- curl
+
+---
+
+## Installation Quick Start
+
+```bash
+# 1. Clone repository
+git clone https://github.com/tieutantan/ttcp.git && cd ttcp
+
+# 2. Install Docker
+./setup/docker.sh
+
+# 3. (Optional) Install Node.js + PM2
+./setup/nodejs.sh
+
+# 4. Start TTCP
+./menu.sh
+# Then select option [98] to start container
+```
+
+---
+
+## Support & Contribution

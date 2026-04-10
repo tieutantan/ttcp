@@ -186,12 +186,15 @@ if [ -n "${SUDO_USER:-}" ]; then
   if ! groups "$SUDO_USER" 2>/dev/null | grep -q docker; then
     echo "[INFO] Adding $SUDO_USER to docker group..."
     sudo usermod -aG docker "$SUDO_USER"
-    echo "[WARN] Please log out and log back in for group membership to take effect."
-    echo "[WARN] Or run in current session: newgrp docker"
+    echo "[INFO] User $SUDO_USER added to docker group."
   else
     echo "[INFO] $SUDO_USER already in docker group."
   fi
 fi
+
+# Fix docker socket permissions as fallback
+echo "[INFO] Ensuring docker socket has correct permissions..."
+sudo chmod 666 /var/run/docker.sock 2>/dev/null || true
 
 ###########################################
 # 9. Enable Docker service + start daemon
@@ -292,6 +295,26 @@ COMPOSE_VERSION=$(docker-compose --version)
 
 echo "[INFO] Docker version: $DOCKER_VERSION"
 echo "[INFO] Docker Compose version: $COMPOSE_VERSION"
+
+###########################################
+# 11b. Verify Docker permissions
+###########################################
+
+echo "[INFO] Testing Docker permissions..."
+if docker ps &>/dev/null 2>&1; then
+  echo "[INFO] ✅ Docker permissions OK - user can access docker socket"
+else
+  echo "[WARN] ⚠️  Docker permission issue detected"
+  echo "[WARN] Attempting to fix permissions..."
+
+  # Try activating docker group in current session
+  if command -v newgrp &>/dev/null; then
+    echo "[INFO] Trying to activate docker group for current session..."
+    # Note: newgrp in script context is tricky, so we provide instructions
+    echo "[WARN] Please run: newgrp docker"
+    echo "[WARN] Or log out and log back in"
+  fi
+fi
 
 
 ###########################################
