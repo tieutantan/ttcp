@@ -59,7 +59,7 @@ Select the desired option by entering the corresponding number and pressing Ente
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-                    🚀 TTCP CONTROL PANEL
+                       TTCP CONTROL PANEL
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 ✅ Docker & TTCP Status: RUNNING
@@ -403,7 +403,7 @@ Select the desired option by entering the corresponding number and pressing Ente
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-                    🚀 TTCP CONTROL PANEL
+                       TTCP CONTROL PANEL
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 ✅ Docker & TTCP Status: RUNNING

@@ -47,7 +47,7 @@ export sshKeyDirectory=~/.ssh/ttcp_ssh_key
 print_header() {
     clear
     echo -e "${CYAN}${BORDER}${NC}"
-    echo -e "${BOLD}${CYAN}                    🚀 TTCP CONTROL PANEL${NC}"
+    echo -e "${BOLD}${CYAN}                     TTCP CONTROL PANEL${NC}"
     echo -e "${CYAN}${BORDER}${NC}"
     echo ""
 }
