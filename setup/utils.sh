@@ -110,25 +110,7 @@ function reloadNginx() {
     MenuTTCP
 }
 
-function enableAutoRun() {
-    # Run the apply-auto-run.sh script in ./setup to apply the auto-run configuration
-    ./setup/startup-manage.sh "enable"
-    echo "$line"
-    crontab -l
-    echo "$line"
-    MenuTTCP
-}
 
-function disableAutoRun() {
-    # Run the apply-auto-run.sh script in ./setup to apply the auto-run configuration
-    ./setup/startup-manage.sh "disable"
-    # shellcheck disable=SC2086
-    echo $line
-    crontab -l
-    # shellcheck disable=SC2086
-    echo $line
-    MenuTTCP
-}
 
 # Add domain by command `docker exec ttcp add [domain] [app_local_port]` format
 function addDomain() {

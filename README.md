@@ -25,24 +25,25 @@ Newest Version
 ./setup/docker.sh
 ```
 
-Default v22 (optional)
+### 3. Install Node.js + PM2 (optional)
+
+Default v20 LTS (recommended)
 ```shell
 ./setup/nodejs.sh
 ```
 
-Custom Version (optional) 23, 20, 18, 16, 14, 12
+Specific Version (optional): 12, 14, 16, 18, 20, 22, 23, latest
 ```shell
-./setup/nodejs.sh 16
+./setup/nodejs.sh 18
 ```
 
-### 3. Run script whenever server reboot (optional)
-You can put (ex: start services, clear cache, schedule...) to `startup.sh` example:
+Latest Version
 ```shell
-#!/bin/bash
-nodemon /path/to/server.js
-cd /home/www/domain.com/app && npm run production
-pm2 startOrReload /path/other/ecosystem.config.js
+./setup/nodejs.sh latest
 ```
+
+**Note:** PM2 and PM2-LogRotate are automatically installed as REQUIRED components.
+
 ----
 
 ## Main Menu
@@ -67,14 +68,12 @@ ubuntu@aws:~/ttcp$ ./menu.sh
 ---------------
 [6] List Clone Commands
 [7] Reload Nginx
-[8] Enable Auto-Run on Startup
-[9] Disable Auto-Run on Startup
 ---------------
 [98] Start TTCP
 [99] Update TTCP
 ---------------
 [0] Exit / Ctrl+C
-Enter your choice: 99 (ex: Update TTCP)
+Enter your choice: 1 (ex: Add Domain)
 ```
 
 ### [1] Add Domain

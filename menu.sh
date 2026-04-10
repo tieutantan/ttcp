@@ -25,8 +25,6 @@ function MenuTTCP() {
     echo "$line"
     echo "[6] List Clone Commands"
     echo "[7] Reload Nginx"
-    echo "[8] Enable Auto-Run on Startup"
-    echo "[9] Disable Auto-Run on Startup"
     echo "$line"
     echo "[98] Start TTCP"
     echo "[99] Update TTCP"
@@ -42,8 +40,6 @@ function MenuTTCP() {
         5) listSSHKeys ;;
         6) listCloneCommands ;;
         7) reloadNginx ;;
-        8) enableAutoRun ;;
-        9) disableAutoRun ;;
 
         98) ttcpStartDockerContainer ;;
         99) updateTTCP ;;
