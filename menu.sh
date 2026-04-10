@@ -8,10 +8,10 @@ set -euo pipefail
 # Color & Decoration Constants
 # ====================================
 readonly RED='\033[0;91m'
-readonly GREEN='\033[0;32m'
-readonly YELLOW='\033[1;33m'
-readonly BLUE='\033[0;34m'
-readonly CYAN='\033[0;36m'
+readonly GREEN='\033[0;92m'
+readonly YELLOW='\033[0;93m'
+readonly BLUE='\033[0;94m'
+readonly CYAN='\033[0;96m'
 readonly BOLD='\033[1m'
 readonly NC='\033[0m'
 
