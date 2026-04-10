@@ -79,6 +79,7 @@ Enter your choice: 99 (ex: Update TTCP)
 
 ### [1] Add Domain
 - Enter a domain with the app's local port.
+- You can add multiple different domains to the same app local port.
 - The `.conf` files will be created in `/ttcp/config/` directory.
 - File Created: `/ttcp/config/tantn.com-1111.conf`
 ```shell
