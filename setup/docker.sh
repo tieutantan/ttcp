@@ -23,23 +23,46 @@ echo " Installing Docker on $DISTRO"
 echo "======================================="
 
 ###########################################
-# 1. Check if already installed
+# 1. Check what's already installed
 ###########################################
 
-if command -v docker &> /dev/null && command -v docker-compose &> /dev/null; then
-  echo "[INFO] Docker and Docker Compose already installed."
-  echo "[INFO] Current versions:"
-  docker --version
-  docker-compose --version
+DOCKER_INSTALLED=false
+COMPOSE_INSTALLED=false
+
+if command -v docker &> /dev/null; then
+  DOCKER_INSTALLED=true
+  DOCKER_VERSION=$(docker --version)
+  echo "[INFO] Docker already installed: $DOCKER_VERSION"
+fi
+
+if command -v docker-compose &> /dev/null; then
+  COMPOSE_INSTALLED=true
+  COMPOSE_VERSION=$(docker-compose --version)
+  echo "[INFO] Docker Compose already installed: $COMPOSE_VERSION"
+fi
+
+# If both are installed, only ensure group membership
+if [ "$DOCKER_INSTALLED" = true ] && [ "$COMPOSE_INSTALLED" = true ]; then
+  echo "[INFO] ✅ Both Docker and Docker Compose already installed."
 
   # Still ensure group membership even if already installed
-  if ! groups "$SUDO_USER" 2>/dev/null | grep -q docker; then
+  if [ -n "${SUDO_USER:-}" ] && ! groups "$SUDO_USER" 2>/dev/null | grep -q docker; then
     echo "[INFO] Adding $SUDO_USER to docker group..."
     sudo usermod -aG docker "$SUDO_USER"
     echo "[WARN] Please log out and log back in for group membership to take effect."
     echo "[WARN] Or run: newgrp docker"
   fi
   exit 0
+fi
+
+# If one or both are missing, we need to proceed with installation
+if [ "$DOCKER_INSTALLED" = false ] || [ "$COMPOSE_INSTALLED" = false ]; then
+  if [ "$DOCKER_INSTALLED" = false ]; then
+    echo "[INFO] 🔴 Docker NOT installed - will install"
+  fi
+  if [ "$COMPOSE_INSTALLED" = false ]; then
+    echo "[INFO] 🔴 Docker Compose NOT installed - will install"
+  fi
 fi
 
 ###########################################
@@ -50,75 +73,99 @@ echo "[INFO] Updating package index..."
 sudo apt-get update -y
 
 ###########################################
-# 3. Install HTTPS + GPG prerequisites
+# 3. Install HTTPS + GPG prerequisites (if needed)
 ###########################################
 
-echo "[INFO] Installing prerequisites (apt-transport-https, curl, ca-certificates, etc.)..."
-sudo apt-get install -y \
-    apt-transport-https \
-    ca-certificates \
-    curl \
-    gnupg \
-    lsb-release \
-    software-properties-common
+if [ "$DOCKER_INSTALLED" = false ]; then
+  echo "[INFO] Installing prerequisites (apt-transport-https, curl, ca-certificates, etc.)..."
+  sudo apt-get install -y \
+      apt-transport-https \
+      ca-certificates \
+      curl \
+      gnupg \
+      lsb-release \
+      software-properties-common
+else
+  echo "[INFO] Skipping prerequisites (Docker already installed)"
+fi
 
 ###########################################
-# 4. Add Docker's official GPG key
+# 4. Add Docker's official GPG key (if needed)
 ###########################################
 
-echo "[INFO] Adding Docker's GPG key..."
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+if [ "$DOCKER_INSTALLED" = false ]; then
+  echo "[INFO] Adding Docker's GPG key..."
+  curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+else
+  echo "[INFO] Skipping GPG key (Docker already installed)"
+fi
 
 ###########################################
-# 5. Set up Docker stable repository
+# 5. Set up Docker stable repository (if needed)
 ###########################################
 
-echo "[INFO] Setting up Docker stable repository..."
-ARCH=$(dpkg --print-architecture)
-UBUNTU_CODENAME=$(lsb_release -cs)
-echo \
-  "deb [arch=$ARCH signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
-  $UBUNTU_CODENAME stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+if [ "$DOCKER_INSTALLED" = false ]; then
+  echo "[INFO] Setting up Docker stable repository..."
+  ARCH=$(dpkg --print-architecture)
+  UBUNTU_CODENAME=$(lsb_release -cs)
+  echo \
+    "deb [arch=$ARCH signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
+    $UBUNTU_CODENAME stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 
-echo "[INFO] Updating package index again..."
-sudo apt-get update -y
-
-###########################################
-# 6. Install Docker Engine + containerd
-###########################################
-
-echo "[INFO] Installing Docker Engine, CLI, and containerd..."
-sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+  echo "[INFO] Updating package index for Docker..."
+  sudo apt-get update -y
+else
+  echo "[INFO] Skipping Docker repository setup (Docker already installed)"
+fi
 
 ###########################################
-# 7. Install Docker Compose (binary)
+# 6. Install Docker Engine + containerd (if needed)
 ###########################################
 
-echo "[INFO] Installing Docker Compose (binary)..."
-COMPOSE_VERSION=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | grep 'tag_name' | cut -d'"' -f4)
-COMPOSE_URL="https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)"
-COMPOSE_DEST="/usr/local/bin/docker-compose"
+if [ "$DOCKER_INSTALLED" = false ]; then
+  echo "[INFO] Installing Docker Engine, CLI, and containerd..."
+  sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+  DOCKER_INSTALLED=true
+  echo "[INFO] Docker installed successfully!"
+else
+  echo "[INFO] Skipping Docker installation (already installed)"
+fi
 
-# Retry logic for download (network might be unstable)
-MAX_RETRIES=3
-RETRY_COUNT=0
-while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
-  if sudo curl -fsSL "$COMPOSE_URL" -o "$COMPOSE_DEST"; then
-    echo "[INFO] Docker Compose downloaded successfully."
-    break
-  else
-    RETRY_COUNT=$((RETRY_COUNT + 1))
-    if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
-      echo "[WARN] Docker Compose download failed, retry $RETRY_COUNT/$MAX_RETRIES..."
-      sleep 2
+###########################################
+# 7. Install Docker Compose (binary) (if needed)
+###########################################
+
+if [ "$COMPOSE_INSTALLED" = false ]; then
+  echo "[INFO] Installing Docker Compose (binary)..."
+  COMPOSE_VERSION=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | grep 'tag_name' | cut -d'"' -f4)
+  COMPOSE_URL="https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)"
+  COMPOSE_DEST="/usr/local/bin/docker-compose"
+
+  # Retry logic for download (network might be unstable)
+  MAX_RETRIES=3
+  RETRY_COUNT=0
+  while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+    if sudo curl -fsSL "$COMPOSE_URL" -o "$COMPOSE_DEST"; then
+      echo "[INFO] Docker Compose downloaded successfully."
+      break
     else
-      echo "[ERROR] Failed to download Docker Compose after $MAX_RETRIES attempts."
-      exit 1
+      RETRY_COUNT=$((RETRY_COUNT + 1))
+      if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
+        echo "[WARN] Docker Compose download failed, retry $RETRY_COUNT/$MAX_RETRIES..."
+        sleep 2
+      else
+        echo "[ERROR] Failed to download Docker Compose after $MAX_RETRIES attempts."
+        exit 1
+      fi
     fi
-  fi
-done
+  done
 
-sudo chmod +x "$COMPOSE_DEST"
+  sudo chmod +x "$COMPOSE_DEST"
+  COMPOSE_INSTALLED=true
+  echo "[INFO] Docker Compose installed successfully!"
+else
+  echo "[INFO] Skipping Docker Compose installation (already installed)"
+fi
 
 ###########################################
 # 8. Configure Docker group + permissions
@@ -230,16 +277,22 @@ done
 ###########################################
 
 echo "[INFO] Verifying installations..."
+if ! command -v docker &> /dev/null; then
+  echo "[ERROR] Docker not found after installation attempt!"
+  exit 1
+fi
+
+if ! command -v docker-compose &> /dev/null; then
+  echo "[ERROR] Docker Compose not found after installation attempt!"
+  exit 1
+fi
+
 DOCKER_VERSION=$(docker --version)
-COMPOSE_VERSION=$("$COMPOSE_DEST" --version)
+COMPOSE_VERSION=$(docker-compose --version)
 
 echo "[INFO] Docker version: $DOCKER_VERSION"
 echo "[INFO] Docker Compose version: $COMPOSE_VERSION"
 
-if [ -z "$DOCKER_VERSION" ] || [ -z "$COMPOSE_VERSION" ]; then
-  echo "[ERROR] Version verification failed!"
-  exit 1
-fi
 
 ###########################################
 # 12. Start TTCP container
@@ -256,8 +309,21 @@ fi
 
 echo "======================================="
 echo " Installation Completed Successfully!"
+echo "======================================="
+UBUNTU_CODENAME=$(lsb_release -cs 2>/dev/null || echo "unknown")
 echo " OS:      $DISTRO ($UBUNTU_CODENAME)"
-echo " Docker:  $DOCKER_VERSION"
-echo " Compose: $COMPOSE_VERSION"
+
+if [ "$DOCKER_INSTALLED" = true ]; then
+  echo " Docker:  $DOCKER_VERSION (✅ Fresh Install)"
+else
+  echo " Docker:  $DOCKER_VERSION (⏭️  Already Installed)"
+fi
+
+if [ "$COMPOSE_INSTALLED" = true ]; then
+  echo " Compose: $COMPOSE_VERSION (✅ Fresh Install)"
+else
+  echo " Compose: $COMPOSE_VERSION (⏭️  Already Installed)"
+fi
+
 echo "======================================="
 
