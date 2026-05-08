@@ -11,28 +11,35 @@ fi
 
 # Example repoUrl: git@github.com:tieutantan/ttcp.git
 repoUrl="$1"
+
+# Remove leading/trailing whitespace (defensive programming)
+repoUrl=$(echo "$repoUrl" | xargs)
+
 sshConfigFile=~/.ssh/config
 sshKeyDirectory=~/.ssh/ttcp_ssh_key
 
 # Extract repository name, path, and domain from the URL
-repositoryName=$(getRepositoryName "$repoUrl")
-repositoryUsername=$(getUsername "$repoUrl")
-repositoryDomain=$(getDomain "$repoUrl")
+repositoryName=$(getRepositoryName "$repoUrl") || exit 1
+repositoryUsername=$(getUsername "$repoUrl") || exit 1
+repositoryDomain=$(getDomain "$repoUrl") || exit 1
 
 # Construct the Git clone command
 cloneCommand="git clone git@$repositoryName:$repositoryUsername/$repositoryName.git"
 
 # Create the SSH key directory if it does not exist
-createDirectoryIfNeeded "$sshKeyDirectory"
+createDirectoryIfNeeded "$sshKeyDirectory" || exit 1
 
 # Generate an SSH key
-ssh-keygen -b 2048 -t rsa -f "$sshKeyDirectory/$repositoryName" -q -N ""
+ssh-keygen -b 2048 -t rsa -f "$sshKeyDirectory/$repositoryName" -q -N "" || {
+  echo "TTCP: Error - Failed to generate SSH key" >&2
+  exit 1
+}
 
 # Add the SSH key configuration to the SSH config file
-addSSHKeyConfig "$repositoryName" "$repositoryDomain" "$sshConfigFile" "$cloneCommand"
+addSSHKeyConfig "$repositoryName" "$repositoryDomain" "$sshConfigFile" "$cloneCommand" || exit 1
 
 # Remove empty lines from the SSH config file
-removeEmptyLines "$sshConfigFile"
+removeEmptyLines "$sshConfigFile" || exit 1
 
 # Output the Git clone command and the SSH public key
 echo "======================================================"

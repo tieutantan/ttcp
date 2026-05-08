@@ -30,36 +30,42 @@ function check_docker_permission() {
 
 function getRepositoryName() {
   local url="$1"
+  # Remove leading/trailing whitespace
+  url=$(echo "$url" | xargs)
   local regex="([^/]+)\.git$"
   if [[ $url =~ $regex ]]; then
     echo "${BASH_REMATCH[1]}"
     return 0
   else
-    echo -e "${RED}${ERROR} Invalid repository URL${NC}" >&2
+    echo -e "${RED}${ERROR} Invalid repository URL (cannot extract repo name)${NC}" >&2
     return 1
   fi
 }
 
 function getUsername() {
   local url="$1"
+  # Remove leading/trailing whitespace
+  url=$(echo "$url" | xargs)
   local regex=":([^/]+)/"
   if [[ $url =~ $regex ]]; then
     echo "${BASH_REMATCH[1]}"
     return 0
   else
-    echo -e "${RED}${ERROR} Cannot extract username${NC}" >&2
+    echo -e "${RED}${ERROR} Cannot extract username from URL${NC}" >&2
     return 1
   fi
 }
 
 function getDomain() {
   local url="$1"
+  # Remove leading/trailing whitespace
+  url=$(echo "$url" | xargs)
   local regex="([^@:/]+@)?([^:/]+)(:[0-9]+)?"
   if [[ $url =~ $regex ]]; then
     echo "${BASH_REMATCH[2]}"
     return 0
   else
-    echo -e "${RED}${ERROR} Cannot extract domain${NC}" >&2
+    echo -e "${RED}${ERROR} Cannot extract domain from URL${NC}" >&2
     return 1
   fi
 }
@@ -236,24 +242,34 @@ function removeDomain() {
 # ====================================
 
 function addSSHKey() {
-    echo "$line"
-    read -p "Enter git repository URL (e.g., git@github.com:user/repo.git): " repoUrl
+     echo "$line"
+     read -p "Enter git repository URL (e.g., git@github.com:user/repo.git): " repoUrl
 
-    if ! [[ $repoUrl =~ ^git@[a-zA-Z0-9.-]+:[a-zA-Z0-9._-]+/[a-zA-Z0-9._-]+\.git$ ]]; then
-      echo -e "${RED}${ERROR} Invalid git URL format${NC}"
-      echo -e "${YELLOW}${INFO} Expected format: git@github.com:username/repo.git${NC}"
-      echo -e "${YELLOW}${INFO} Example: git@github.com:myuser/myproject.git${NC}"
-      echo "$line"
-      return 1
-    fi
+     # Remove leading/trailing whitespace (important for pasted URLs)
+     repoUrl=$(echo "$repoUrl" | xargs)
 
-    if ./setup/ssh-keygen.sh "$repoUrl"; then
-      echo -e "${GREEN}${CHECK} SSH key added successfully!${NC}"
-    else
-      echo -e "${RED}${ERROR} Failed to add SSH key${NC}"
-      return 1
-    fi
-    echo "$line"
+     if [ -z "$repoUrl" ]; then
+       echo -e "${RED}${ERROR} Repository URL cannot be empty${NC}"
+       echo "$line"
+       return 1
+     fi
+
+     if ! [[ $repoUrl =~ ^git@[a-zA-Z0-9.-]+:[a-zA-Z0-9._-]+/[a-zA-Z0-9._-]+\.git$ ]]; then
+       echo -e "${RED}${ERROR} Invalid git URL format${NC}"
+       echo -e "${YELLOW}${INFO} Expected format: git@github.com:username/repo.git${NC}"
+       echo -e "${YELLOW}${INFO} Example: git@github.com:myuser/myproject.git${NC}"
+       echo -e "${YELLOW}${INFO} You provided: $repoUrl${NC}"
+       echo "$line"
+       return 1
+     fi
+
+     if ./setup/ssh-keygen.sh "$repoUrl"; then
+       echo -e "${GREEN}${CHECK} SSH key added successfully!${NC}"
+     else
+       echo -e "${RED}${ERROR} Failed to add SSH key${NC}"
+       return 1
+     fi
+     echo "$line"
 }
 
 function listSSHKeys() {
